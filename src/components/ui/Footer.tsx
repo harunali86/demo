@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { MapPin, Phone, Mail, Truck, Shield, HeadphonesIcon, CreditCard } from 'lucide-react';
+import { MapPin, Phone, Mail, Truck, Shield, HeadphonesIcon, CreditCard, MessageCircle } from 'lucide-react';
 
 const LINKS = {
     getToKnow: [
@@ -44,8 +44,22 @@ export default function Footer() {
                         </Link>
                         <div className="text-[12px] text-[#ddd] space-y-2">
                             <p className="flex items-center gap-2"><MapPin className="w-4 h-4" /> Pune, Maharashtra, India</p>
-                            <p className="flex items-center gap-2"><Phone className="w-4 h-4" /> +91 XXXXX XXXXX</p>
-                            <p className="flex items-center gap-2"><Mail className="w-4 h-4" /> harun@gmail.com</p>
+                            <a
+                                href="https://wa.me/919876543210"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 hover:text-white hover:underline transition-all"
+                            >
+                                <MessageCircle className="w-4 h-4 text-green-500" />
+                                <span>Chat on WhatsApp</span>
+                            </a>
+                            <a
+                                href="mailto:harunshaikh270599@gmail.com"
+                                className="flex items-center gap-2 hover:text-white hover:underline transition-all"
+                            >
+                                <Mail className="w-4 h-4 text-orange-500" />
+                                <span>harunshaikh270599@gmail.com</span>
+                            </a>
                         </div>
                     </div>
 

@@ -6,26 +6,34 @@
    ================================================ */
 
 :root {
-  /* Primary Color - Orange (Amazon style) */
+  /* Primary Color - Brand Orange (Kept for identity but refined) */
   --primary: #f97316;
   --primary-dark: #ea580c;
   --primary-light: #fb923c;
 
-  /* Backgrounds */
-  --bg-page: #0a0a0f;
-  --bg-card: #12121a;
-  --bg-elevated: #1a1a24;
-  --bg-input: #1f1f2a;
+  /* SaaS Dark Theme Backgrounds (Slate Scale) */
+  --bg-page: #020617;
+  /* Slate 950 - Main background */
+  --bg-card: #0f172a;
+  /* Slate 900 - Cards/Panels */
+  --bg-elevated: #1e293b;
+  /* Slate 800 - Hover/Dropdowns */
+  --bg-input: #0f172a;
+  /* Slate 900 - Inputs (high contrast with border) */
 
-  /* Text */
-  --text-primary: #f0f0f5;
-  --text-secondary: #a0a0b0;
-  --text-muted: #606070;
+  /* Text - High Contrast & Warmth */
+  --text-primary: #f8fafc;
+  /* Slate 50 */
+  --text-secondary: #94a3b8;
+  /* Slate 400 */
+  --text-muted: #64748b;
+  /* Slate 500 */
 
-  /* Borders */
-  --border: #2a2a38;
+  /* Borders - Subtle & Structural */
+  --border: #1e293b;
+  /* Slate 800 */
 
-  /* Semantic */
+  /* Semantic - Accessible variants */
   --success: #10b981;
   --warning: #f59e0b;
   --error: #ef4444;
@@ -41,8 +49,8 @@
 
 html,
 body {
-  background: #0a0a0f !important;
-  color: #f0f0f5 !important;
+  background: var(--bg-page) !important;
+  color: var(--text-primary) !important;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 14px;
   line-height: 1.5;
@@ -84,9 +92,9 @@ a:hover {
 
 .card,
 section {
-  background: #12121a;
-  border: 1px solid #2a2a38;
-  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
 }
 
 .card:hover {
