@@ -169,11 +169,13 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
             // 4. Fetch Customer Profile
             let customerData = null;
-            if (orderData.user_id) {
+            // @ts-ignore
+            if ((orderData as any).user_id) {
                 const { data: profile } = await supabase
                     .from('profiles')
                     .select('first_name, last_name, email, phone')
-                    .eq('id', orderData.user_id)
+                    // @ts-ignore
+                    .eq('id', (orderData as any).user_id)
                     .single();
                 customerData = profile;
             }
@@ -186,7 +188,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
             // Construct Final Object
             const fullOrder = {
-                ...orderData,
+                // @ts-ignore
+                ...(orderData as any),
                 items: itemsWithProducts,
                 customer: customerData,
                 timeline: trackingData || []
