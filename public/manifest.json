@@ -1,0 +1,43 @@
+{
+  "name": "Harun Store",
+  "short_name": "Harun Store",
+  "description": "Premium online shopping destination - Electronics, Fashion, Home & more",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#FF6B35",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "lifestyle"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Search Products",
+      "url": "/search",
+      "icons": [{"src": "/logo.png", "sizes": "96x96"}]
+    },
+    {
+      "name": "My Cart",
+      "url": "/cart",
+      "icons": [{"src": "/logo.png", "sizes": "96x96"}]
+    },
+    {
+      "name": "My Orders",
+      "url": "/orders",
+      "icons": [{"src": "/logo.png", "sizes": "96x96"}]
+    }
+  ]
+}

@@ -1,0 +1,250 @@
+@import "tailwindcss";
+
+/* ================================================
+   HARUN STORE - PREMIUM DARK THEME
+   Consistent Orange accent color
+   ================================================ */
+
+:root {
+  /* Primary Color - Orange (Amazon style) */
+  --primary: #f97316;
+  --primary-dark: #ea580c;
+  --primary-light: #fb923c;
+
+  /* Backgrounds */
+  --bg-page: #0a0a0f;
+  --bg-card: #12121a;
+  --bg-elevated: #1a1a24;
+  --bg-input: #1f1f2a;
+
+  /* Text */
+  --text-primary: #f0f0f5;
+  --text-secondary: #a0a0b0;
+  --text-muted: #606070;
+
+  /* Borders */
+  --border: #2a2a38;
+
+  /* Semantic */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+}
+
+/* ================================================
+   BASE STYLES
+   ================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: #0a0a0f !important;
+  color: #f0f0f5 !important;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+  padding: 0;
+}
+
+/* ================================================
+   TYPOGRAPHY
+   ================================================ */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: #f0f0f5;
+  font-weight: 700;
+}
+
+p {
+  color: #a0a0b0;
+}
+
+a {
+  color: #f97316;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #fb923c;
+}
+
+/* ================================================
+   CARDS
+   ================================================ */
+
+.card,
+section {
+  background: #12121a;
+  border: 1px solid #2a2a38;
+  border-radius: 16px;
+}
+
+.card:hover {
+  border-color: rgba(249, 115, 22, 0.4);
+}
+
+/* ================================================
+   BUTTONS
+   ================================================ */
+
+.btn-cart {
+  background: transparent;
+  border: 2px solid #f97316;
+  border-radius: 12px;
+  color: #f97316;
+  font-weight: 600;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cart:hover {
+  background: #f97316;
+  color: white;
+}
+
+.btn-buy {
+  background: #f97316;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-buy:hover {
+  background: #ea580c;
+}
+
+/* ================================================
+   INPUTS
+   ================================================ */
+
+input,
+textarea,
+select {
+  background: #1f1f2a;
+  border: 1px solid #2a2a38;
+  border-radius: 12px;
+  color: #f0f0f5;
+  padding: 12px 16px;
+  outline: none;
+}
+
+input:focus {
+  border-color: #f97316;
+}
+
+input::placeholder {
+  color: #606070;
+}
+
+/* ================================================
+   RATINGS & PRICES
+   ================================================ */
+
+.rating {
+  color: #fbbf24;
+}
+
+.price {
+  color: #f0f0f5;
+  font-weight: 700;
+}
+
+.price-old {
+  color: #606070;
+  text-decoration: line-through;
+}
+
+.price-discount {
+  color: #10b981;
+}
+
+/* ================================================
+   BADGES
+   ================================================ */
+
+.badge-deal {
+  background: #ef4444;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.badge-new {
+  background: #f97316;
+  color: white;
+}
+
+/* ================================================
+   SCROLLBAR
+   ================================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0f;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2a38;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a48;
+}
+
+/* ================================================
+   UTILITIES
+   ================================================ */
+
+.shadow-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ================================================
+   ANIMATIONS
+   ================================================ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
