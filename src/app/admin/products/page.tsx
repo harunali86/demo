@@ -47,7 +47,7 @@ export default function ProductsPage() {
             setProducts(data || []);
         } catch (error) {
             console.error('Error fetching products:', error);
-            toast.error('Failed to load products');
+            // toast.error('Failed to load products');
             setProducts([]);
         } finally {
             setLoading(false);
