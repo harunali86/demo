@@ -75,8 +75,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 if (pathname !== '/admin/login') {
                     router.push('/admin/login');
                 } else {
-                    // We are on login page, allow rendering content (which is the login form)
-                    // Technically not authenticated but allowed to view the login form.
                     setIsAuthenticated(true);
                 }
             } else {
@@ -92,11 +90,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         }
     };
 
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-        router.push('/admin/login');
-    };
-
     // Don't show layout for login page
     if (pathname === '/admin/login') {
         return <>{children}</>;
@@ -104,7 +97,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] flex items-center justify-center">
+            <div className="min-h-screen bg-[#f1f3f6] flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
             </div>
         );
@@ -115,38 +108,38 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     }
 
     return (
-        <div className="min-h-screen bg-background text-white flex">
+        <div className="min-h-screen bg-[#f1f3f6] flex">
             {/* Mobile Sidebar Overlay */}
             {sidebarOpen && (
                 <div
-                    className="fixed inset-0 z-40 bg-black/80 lg:hidden backdrop-blur-sm"
+                    className="fixed inset-0 z-40 bg-black/50 lg:hidden backdrop-blur-sm"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
 
             {/* Sidebar */}
             <aside className={`
-                fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[#0f172a] border-r border-[#1e293b]
-                transform transition-transform lg:transform-none
+                fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200
+                transform transition-transform lg:transform-none shadow-sm lg:shadow-none
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             `}>
                 <div className="flex flex-col h-full">
                     {/* Logo */}
-                    <div className="p-6 border-b border-[#1e293b]">
+                    <div className="h-16 flex items-center px-6 border-b border-gray-100">
                         <Link href="/admin" className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-[#2874f0] flex items-center justify-center shadow-sm">
                                 <span className="text-white font-bold text-lg">H</span>
                             </div>
                             <div>
-                                <h1 className="font-bold text-base text-gray-100">Harun Store</h1>
-                                <p className="text-[11px] text-gray-500 uppercase tracking-wider font-semibold">Admin Workspace</p>
+                                <h1 className="font-bold text-base text-gray-900 leading-tight">Harun Store</h1>
+                                <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">Admin Panel</p>
                             </div>
                         </Link>
                     </div>
 
                     {/* Navigation */}
                     <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-                        <div className="text-xs font-semibold text-gray-500 mb-2 px-4 uppercase tracking-wider">Main Menu</div>
+                        <div className="text-xs font-bold text-gray-400 mb-2 px-4 uppercase tracking-wider">Main Menu</div>
                         {ADMIN_NAV.map((item) => {
                             const isActive = pathname === item.href ||
                                 (item.href !== '/admin' && pathname.startsWith(item.href));
@@ -156,40 +149,40 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                                     href={item.href}
                                     onClick={() => setSidebarOpen(false)}
                                     className={`
-                                        flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all text-sm font-medium
+                                        flex items-center gap-3 px-4 py-2.5 rounded-[2px] transition-all text-sm font-medium
                                         ${isActive
-                                            ? 'bg-orange-600/10 text-orange-500 border border-orange-600/20'
-                                            : 'text-gray-400 hover:bg-[#1e293b] hover:text-gray-200'
+                                            ? 'bg-blue-50 text-blue-700 font-bold'
+                                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                         }
                                     `}
                                 >
-                                    <item.icon className={`w-4 h-4 ${isActive ? 'text-orange-500' : 'text-gray-500'}`} />
+                                    <item.icon className={`w-4 h-4 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
                                     <span>{item.name}</span>
-                                    {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-orange-500" />}
+                                    {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-600" />}
                                 </Link>
                             );
                         })}
                     </nav>
 
                     {/* Footer */}
-                    <div className="p-4 border-t border-[#1e293b] space-y-2">
+                    <div className="p-4 border-t border-gray-100 space-y-2">
                         <Link
                             href="/"
                             target="_blank"
-                            className="flex items-center justify-between gap-3 px-4 py-2.5 text-gray-400 hover:bg-[#1e293b] hover:text-white rounded-lg transition-all group text-sm"
+                            className="flex items-center justify-between gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-[2px] transition-all group text-sm font-medium"
                         >
                             <div className="flex items-center gap-3">
                                 <Store className="w-4 h-4" />
                                 <span className="font-medium">View Website</span>
                             </div>
-                            <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-primary transition-colors" />
                         </Link>
                         <button
                             onClick={async () => {
                                 await supabase.auth.signOut();
                                 router.push('/admin/login');
                             }}
-                            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-400 hover:bg-red-950/30 hover:text-red-400 transition text-sm font-medium"
+                            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-[2px] text-gray-600 hover:bg-red-50 hover:text-red-600 transition text-sm font-medium"
                         >
                             <LogOut className="w-4 h-4" />
                             <span>Sign Out</span>
@@ -199,34 +192,27 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             </aside>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col min-h-screen overflow-hidden bg-[#020617]">
-                {/* Top Bar */}
-                <header className="sticky top-0 z-30 bg-[#020617]/80 backdrop-blur-md border-b border-[#1e293b]">
-                    <div className="flex items-center justify-between px-6 py-4">
-                        <div className="flex items-center gap-4">
+            <div className="flex-1 flex flex-col min-h-screen overflow-hidden bg-[#f1f3f6]">
+                {/* Top Bar for Mobile Menu */}
+                <header className="bg-white border-b border-gray-200 lg:hidden sticky top-0 z-30">
+                    <div className="flex items-center justify-between px-4 py-3">
+                        <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setSidebarOpen(true)}
-                                className="lg:hidden p-2 hover:bg-[#1e293b] rounded-lg text-gray-400 transition"
+                                className="p-2 hover:bg-gray-50 rounded-md text-gray-600 transition"
                             >
                                 <Menu className="w-5 h-5" />
                             </button>
-                            {/* BreadCrumb Placeholder or Page Title could go here */}
+                            <span className="font-bold text-gray-900">Admin Panel</span>
                         </div>
-
-                        <div className="ml-auto flex items-center gap-4">
-                            <div className="text-right hidden sm:block">
-                                <p className="text-sm font-medium text-gray-200">Admin User</p>
-                                <p className="text-xs text-gray-500">Super Admin</p>
-                            </div>
-                            <div className="w-9 h-9 rounded-full bg-[#1e293b] border border-[#334155] flex items-center justify-center font-bold text-gray-300 text-sm">
-                                AD
-                            </div>
+                        <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center font-bold text-primary text-xs">
+                            AD
                         </div>
                     </div>
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-auto p-6 md:p-8">
+                <main className="flex-1 overflow-auto">
                     {children}
                 </main>
             </div>

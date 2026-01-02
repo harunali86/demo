@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, FolderTree } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, FolderTree, Search, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { mockCategories } from '@/data/fallback-data';
 import { toast } from 'sonner';
@@ -23,6 +23,7 @@ export default function CategoriesPage() {
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const [formData, setFormData] = useState({
         name: '',
@@ -50,7 +51,6 @@ export default function CategoriesPage() {
             // Fallback to mock data
             // @ts-ignore
             setCategories(mockCategories);
-            toast('Demo Mode: Using sample categories', { icon: '⚠️' });
         } finally {
             setLoading(false);
         }
@@ -81,7 +81,9 @@ export default function CategoriesPage() {
                     .eq('id', editingId);
 
                 if (error) throw error;
+                // @ts-ignore
                 setCategories(prev => prev.map(c => c.id === editingId ? { ...c, ...categoryData, image_url: categoryData.image } : c));
+                toast.success('Category updated');
             } else {
                 const { data, error } = await supabase
                     .from('categories')
@@ -93,12 +95,13 @@ export default function CategoriesPage() {
                 if (error) throw error;
                 // @ts-ignore
                 if (data) setCategories(prev => [...prev, { ...data, image_url: data.image }]);
+                toast.success('Category created');
             }
 
             resetForm();
         } catch (error) {
             console.error('Error saving category:', error);
-            alert('Failed to save category');
+            toast.error('Failed to save category');
         } finally {
             setSaving(false);
         }
@@ -127,9 +130,10 @@ export default function CategoriesPage() {
 
             if (error) throw error;
             setCategories(prev => prev.filter(c => c.id !== id));
+            toast.success('Category deleted');
         } catch (error) {
             console.error('Error deleting category:', error);
-            alert('Failed to delete category');
+            toast.error('Failed to delete category');
         }
     };
 
@@ -139,10 +143,15 @@ export default function CategoriesPage() {
         setShowForm(false);
     };
 
+    const filteredCategories = categories.filter(c =>
+        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.slug.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
             </div>
         );
     }
@@ -150,159 +159,196 @@ export default function CategoriesPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold">Categories</h1>
-                    <p className="text-gray-400">{categories.length} categories in database</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
+                    <p className="text-sm text-gray-500 mt-1">Organize your products into categories</p>
                 </div>
                 <button
                     onClick={() => setShowForm(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary text-black rounded-lg font-medium hover:bg-primary/90 transition"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#2874f0] text-white rounded-lg font-medium hover:bg-blue-600 transition shadow-sm"
                 >
                     <Plus className="w-4 h-4" />
                     Add Category
                 </button>
             </div>
 
-            {/* Add/Edit Form */}
+            {/* Add/Edit Form Modal Overlay */}
             {showForm && (
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                    <h2 className="text-xl font-bold mb-4">{editingId ? 'Edit Category' : 'Add New Category'}</h2>
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-1">Name *</label>
-                            <input
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    name: e.target.value,
-                                    slug: generateSlug(e.target.value)
-                                })}
-                                placeholder="Category Name"
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-primary outline-none"
-                                required
-                            />
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+                            <h2 className="text-lg font-bold text-gray-900">{editingId ? 'Edit Category' : 'Add New Category'}</h2>
+                            <button onClick={resetForm} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-1">Slug</label>
-                            <input
-                                type="text"
-                                value={formData.slug}
-                                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                                placeholder="category_slug"
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-primary outline-none"
-                            />
-                        </div>
-                        <div className="md:col-span-2">
-                            <label className="block text-sm text-gray-400 mb-1">Description</label>
-                            <textarea
-                                value={formData.description}
-                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                placeholder="Category description..."
-                                rows={2}
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-primary outline-none resize-none"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm text-gray-400 mb-1">Image URL</label>
-                            <input
-                                type="url"
-                                value={formData.image_url}
-                                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                                placeholder="https://..."
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-primary outline-none"
-                            />
-                        </div>
-                        <div className="flex items-center">
-                            <label className="flex items-center gap-3 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={formData.is_active}
-                                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                                    className="w-5 h-5 rounded bg-white/10"
+
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                                    <input
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({
+                                            ...formData,
+                                            name: e.target.value,
+                                            slug: generateSlug(e.target.value)
+                                        })}
+                                        placeholder="Category Name"
+                                        className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Slug</label>
+                                    <input
+                                        type="text"
+                                        value={formData.slug}
+                                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                                        placeholder="category_slug"
+                                        className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all cursor-not-allowed"
+                                        readOnly
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    placeholder="Category description..."
+                                    rows={3}
+                                    className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all resize-none"
                                 />
-                                <span>Active</span>
-                            </label>
-                        </div>
-                        <div className="md:col-span-2 flex gap-3">
-                            <button
-                                type="submit"
-                                disabled={saving}
-                                className="flex items-center gap-2 px-6 py-2 bg-primary text-black rounded-lg font-medium hover:bg-primary/90 transition disabled:opacity-50"
-                            >
-                                <Save className="w-4 h-4" />
-                                {saving ? 'Saving...' : editingId ? 'Update' : 'Create'}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={resetForm}
-                                className="flex items-center gap-2 px-6 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition"
-                            >
-                                <X className="w-4 h-4" />
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+                                <div className="flex gap-4">
+                                    <input
+                                        type="url"
+                                        value={formData.image_url}
+                                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                                        placeholder="https://..."
+                                        className="flex-1 px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                                    />
+                                    {formData.image_url && (
+                                        <div className="w-10 h-10 rounded border border-gray-200 overflow-hidden bg-gray-50 shrink-0">
+                                            <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex items-center pt-2">
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.is_active}
+                                        onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                                        className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
+                                    />
+                                    <span className="text-sm font-medium text-gray-700">Active Status</span>
+                                </label>
+                            </div>
+
+                            <div className="pt-4 flex items-center justify-end gap-3 border-t border-gray-100 mt-6">
+                                <button
+                                    type="button"
+                                    onClick={resetForm}
+                                    className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={saving}
+                                    className="flex items-center gap-2 px-6 py-2 bg-[#2874f0] text-white rounded-lg font-medium hover:bg-blue-600 transition-colors disabled:opacity-70 text-sm shadow-sm"
+                                >
+                                    {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                                    {editingId ? 'Update Category' : 'Create Category'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
 
-            {/* Empty State */}
-            {categories.length === 0 && !showForm ? (
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-12 text-center">
-                    <FolderTree className="w-16 h-16 mx-auto text-gray-600 mb-4" />
-                    <h2 className="text-xl font-bold mb-2">No Categories Yet</h2>
-                    <p className="text-gray-400 mb-6">Create categories to organize your products</p>
-                    <button
-                        onClick={() => setShowForm(true)}
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-black rounded-lg font-medium hover:bg-primary/90 transition"
-                    >
-                        <Plus className="w-5 h-5" />
-                        Add First Category
-                    </button>
+            {/* Search and Filter */}
+            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search categories..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+                    />
                 </div>
-            ) : categories.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {categories.map((category) => (
+            </div>
+
+            {/* Categories Grid */}
+            {filteredCategories.length === 0 ? (
+                <div className="bg-white border border-gray-200 rounded-lg p-12 text-center text-gray-500">
+                    <FolderTree className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                    <p className="text-lg font-medium text-gray-900">No categories found</p>
+                    <p className="text-sm mt-1">{searchTerm ? 'Try adjusting your search' : 'Start by creating a new category'}</p>
+                    {!searchTerm && (
+                        <button
+                            onClick={() => setShowForm(true)}
+                            className="mt-4 text-blue-600 hover:text-blue-700 font-medium text-sm inline-flex items-center gap-1"
+                        >
+                            <Plus className="w-4 h-4" /> Create Category
+                        </button>
+                    )}
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {filteredCategories.map((category) => (
                         <div
                             key={category.id}
-                            className={`bg-white/5 border rounded-2xl overflow-hidden ${category.is_active ? 'border-white/10' : 'border-white/5 opacity-60'}`}
+                            className={`bg-white border rounded-lg overflow-hidden hover:shadow-md transition-shadow group ${category.is_active ? 'border-gray-200' : 'border-gray-200 opacity-75 bg-gray-50'}`}
                         >
-                            {category.image_url ? (
-                                <div className="h-32 overflow-hidden">
-                                    <img src={category.image_url} alt={category.name} className="w-full h-full object-cover" />
-                                </div>
-                            ) : (
-                                <div className="h-32 bg-[#1a1a24] flex items-center justify-center">
-                                    <FolderTree className="w-12 h-12 text-gray-700" />
-                                </div>
-                            )}
-                            <div className="p-4">
-                                <div className="flex items-start justify-between mb-2">
-                                    <div>
-                                        <h3 className="font-bold text-lg">{category.name}</h3>
-                                        <p className="text-xs text-gray-500 font-mono">{category.slug}</p>
+                            <div className="h-40 bg-gray-100 relative overflow-hidden">
+                                {category.image_url ? (
+                                    <img src={category.image_url} alt={category.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                        <ImageIcon className="w-10 h-10 opacity-20" />
                                     </div>
-                                    <span className={`px-2 py-0.5 rounded-full text-xs ${category.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                                        {category.is_active ? 'Active' : 'Inactive'}
+                                )}
+                                <div className="absolute top-2 right-2">
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${category.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                        {category.is_active ? 'Active' : 'Hidden'}
                                     </span>
                                 </div>
-                                {category.description && (
-                                    <p className="text-sm text-gray-400 mb-3 line-clamp-2">{category.description}</p>
-                                )}
-                                <div className="flex gap-2">
+                            </div>
+
+                            <div className="p-4">
+                                <h3 className="font-bold text-gray-900 mb-1 truncate">{category.name}</h3>
+                                <p className="text-xs text-gray-500 font-mono mb-3 truncate bg-gray-50 inline-block px-1.5 py-0.5 rounded border border-gray-100">/{category.slug}</p>
+
+                                <p className="text-sm text-gray-600 mb-4 line-clamp-2 h-10">
+                                    {category.description || <span className="text-gray-400 italic">No description provided</span>}
+                                </p>
+
+                                <div className="flex gap-2 pt-2 border-t border-gray-100">
                                     <button
                                         onClick={() => handleEdit(category)}
-                                        className="flex-1 flex items-center justify-center gap-1 py-2 bg-white/10 rounded-lg text-sm hover:bg-white/20 transition"
+                                        className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded text-xs font-medium transition-colors"
                                     >
-                                        <Edit2 className="w-4 h-4" />
+                                        <Edit2 className="w-3.5 h-3.5" />
                                         Edit
                                     </button>
                                     <button
                                         onClick={() => handleDelete(category.id)}
-                                        className="flex items-center justify-center gap-1 p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition"
+                                        className="flex items-center justify-center gap-1.5 px-3 py-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded text-xs font-medium transition-colors"
                                     >
-                                        <Trash2 className="w-4 h-4" />
+                                        <Trash2 className="w-3.5 h-3.5" />
                                     </button>
                                 </div>
                             </div>

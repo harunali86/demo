@@ -50,7 +50,7 @@ export default function AvatarUpload({ url, onUpload, size = 150 }: AvatarUpload
     return (
         <div className="relative group mx-auto" style={{ width: size, height: size }}>
             <div
-                className="rounded-full overflow-hidden border-4 border-zinc-800 bg-zinc-900 flex items-center justify-center w-full h-full relative"
+                className="rounded-full overflow-hidden border-2 border-gray-200 bg-gray-50 flex items-center justify-center w-full h-full relative"
             >
                 {url ? (
                     <img
@@ -59,23 +59,23 @@ export default function AvatarUpload({ url, onUpload, size = 150 }: AvatarUpload
                         className="w-full h-full object-cover"
                     />
                 ) : (
-                    <User className="w-1/2 h-1/2 text-zinc-600" />
+                    <User className="w-1/2 h-1/2 text-gray-300" />
                 )}
 
                 {uploading && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+                    <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10">
                         <Loader2 className="w-8 h-8 text-primary animate-spin" />
                     </div>
                 )}
             </div>
 
             <button
-                className="absolute bottom-0 right-0 p-2 bg-primary text-black rounded-full shadow-lg hover:bg-primary/90 transition-transform active:scale-95"
+                className="absolute bottom-0 right-0 p-2 bg-white text-gray-600 border border-gray-200 rounded-full shadow-md hover:text-primary transition-transform active:scale-95"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
                 title="Upload new avatar"
             >
-                <Camera className="w-5 h-5" />
+                <Camera className="w-4 h-4" />
             </button>
 
             <input

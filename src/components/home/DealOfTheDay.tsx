@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronRight, Star } from 'lucide-react';
+import { ChevronRight, Clock, Star } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PRODUCTS } from '@/data/products';
@@ -34,102 +34,87 @@ export default function DealOfTheDay() {
     }, []);
 
     return (
-        <section className="bg-white dark:bg-[#1a1a1a] py-5 mx-4 rounded shadow-card">
+        <section className="bg-white py-4 md:py-6 shadow-sm border border-gray-200 rounded-sm">
             <div className="max-w-7xl mx-auto px-4">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                        <h2 className="text-[21px] font-bold text-[#0f1111] dark:text-[#e3e6e6]">
-                            Deal of the Day
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+                    <div className="flex items-center gap-6">
+                        <h2 className="text-[20px] font-medium text-gray-900">
+                            Deals of the Day
                         </h2>
-                        <div className="flex items-center gap-1 text-[13px] text-[#565959] dark:text-[#999]">
-                            <span>Ends in</span>
-                            <span className="font-mono bg-[#0f1111] text-white px-2 py-1 rounded text-[12px]">
-                                {String(timeLeft.hours).padStart(2, '0')}:{String(timeLeft.minutes).padStart(2, '0')}:{String(timeLeft.seconds).padStart(2, '0')}
+                        <div className="flex items-center gap-2 text-gray-500 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
+                            <Clock className="w-4 h-4 text-primary" />
+                            <span className="text-[14px] font-medium">
+                                {String(timeLeft.hours).padStart(2, '0')}h : {String(timeLeft.minutes).padStart(2, '0')}m : {String(timeLeft.seconds).padStart(2, '0')}s
                             </span>
                         </div>
                     </div>
                     <Link
                         href="/deals"
-                        className="flex items-center gap-1 text-[13px] text-[#007185] dark:text-[#56c5d3] hover:text-[#c45500] hover:underline"
+                        className="flex items-center justify-center bg-primary hover:bg-blue-600 text-white text-[13px] font-medium px-4 py-2 rounded-[2px] shadow-sm transition-colors"
                     >
-                        See all deals
-                        <ChevronRight className="w-4 h-4" />
+                        VIEW ALL
                     </Link>
                 </div>
 
                 {/* Deal Content */}
-                <div className="flex flex-col md:flex-row gap-6 items-start">
+                <div className="flex flex-col md:flex-row gap-8 items-center bg-gray-50 p-6 rounded-lg border border-gray-100/50">
                     {/* Product Image */}
-                    <div className="flex-shrink-0 w-full md:w-64">
-                        <div className="relative aspect-square bg-white dark:bg-[#1a1a1a]">
-                            <Image
-                                src={dealProduct.img}
-                                alt={dealProduct.name}
-                                fill
-                                className="object-contain p-4"
-                            />
-                            {/* Deal badge */}
-                            <div className="absolute top-2 left-2 bg-[#cc0c39] text-white text-[11px] font-bold px-2 py-1">
-                                {discount}% off
-                            </div>
+                    <div className="relative w-full md:w-1/3 aspect-[4/3] bg-white rounded-lg p-6 shadow-sm">
+                        <Image
+                            src={dealProduct.img}
+                            alt={dealProduct.name}
+                            fill
+                            className="object-contain"
+                        />
+                        <div className="absolute top-4 left-4 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-[2px] shadow-sm">
+                            {discount}% OFF
                         </div>
                     </div>
 
                     {/* Product Info */}
-                    <div className="flex-1">
-                        <span className="inline-block bg-[#cc0c39] text-white text-[11px] font-bold px-2 py-1 mb-2">
-                            Deal of the Day
-                        </span>
-
+                    <div className="flex-1 space-y-4">
                         <Link
                             href={`/product/${dealProduct.name.toLowerCase().replace(/ /g, '-')}`}
                             className="block"
                         >
-                            <h3 className="text-[16px] text-[#0f1111] dark:text-[#e3e6e6] hover:text-[#c45500] dark:hover:text-[#ff9900] mb-2">
+                            <h3 className="text-xl md:text-2xl font-medium text-gray-800 hover:text-primary transition-colors">
                                 {dealProduct.name}
                             </h3>
                         </Link>
 
-                        {/* Rating */}
-                        <div className="flex items-center gap-1 mb-2">
-                            <div className="flex text-[#de7921]">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                    <Star key={star} className="w-4 h-4 fill-current" />
-                                ))}
+                        <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 bg-green-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-[3px]">
+                                4.5 <Star className="w-2.5 h-2.5 fill-current" />
                             </div>
-                            <span className="text-[12px] text-[#007185] dark:text-[#56c5d3]">12,345</span>
+                            <span className="text-gray-500 text-sm font-medium">(12,345 Reviews)</span>
                         </div>
 
-                        {/* Price */}
-                        <div className="mb-3">
-                            <div className="flex items-baseline gap-2">
-                                <span className="text-[12px] text-[#cc0c39] font-medium">-{discount}%</span>
-                                <span className="text-[28px] text-[#0f1111] dark:text-[#e3e6e6]">
-                                    <span className="text-[12px] align-top">₹</span>
-                                    {dealProduct.price.toLocaleString()}
-                                </span>
+                        <div className="space-y-1">
+                            <div className="flex items-baseline gap-3">
+                                <span className="text-3xl font-medium text-gray-900">₹{dealProduct.price.toLocaleString()}</span>
+                                {dealProduct.sale && (
+                                    <>
+                                        <span className="text-lg text-gray-500 line-through">₹{dealProduct.sale.toLocaleString()}</span>
+                                        <span className="text-lg font-medium text-green-600">{discount}% off</span>
+                                    </>
+                                )}
                             </div>
-                            {dealProduct.sale && (
-                                <p className="text-[12px] text-[#565959] dark:text-[#999]">
-                                    M.R.P.: <span className="line-through">₹{dealProduct.sale.toLocaleString()}</span>
-                                </p>
-                            )}
                         </div>
 
                         {/* Buttons */}
-                        <div className="flex gap-3">
+                        <div className="flex gap-4 pt-2">
                             <Link
                                 href={`/product/${dealProduct.name.toLowerCase().replace(/ /g, '-')}`}
-                                className="px-6 py-2 bg-[#ffd814] hover:bg-[#f7ca00] text-[#0f1111] text-[13px] font-medium rounded-full border border-[#fcd200]"
+                                className="px-8 py-3 bg-[#ff9f00] hover:bg-[#f39700] text-white font-medium rounded-[2px] shadow-sm transition-colors"
                             >
-                                Add to Cart
+                                ADD TO CART
                             </Link>
                             <Link
                                 href={`/product/${dealProduct.name.toLowerCase().replace(/ /g, '-')}`}
-                                className="px-6 py-2 bg-[#ffa41c] hover:bg-[#ff9900] text-[#0f1111] text-[13px] font-medium rounded-full border border-[#ff8f00]"
+                                className="px-8 py-3 bg-[#fb641b] hover:bg-[#f45f18] text-white font-medium rounded-[2px] shadow-sm transition-colors"
                             >
-                                Buy Now
+                                BUY NOW
                             </Link>
                         </div>
                     </div>

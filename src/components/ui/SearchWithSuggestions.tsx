@@ -91,20 +91,20 @@ export default function SearchWithSuggestions({ className = '' }: { className?: 
         <div ref={wrapperRef} className={`relative ${className}`}>
             {/* Search Input */}
             <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                     type="text"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onFocus={() => setIsOpen(true)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
-                    placeholder="Search products..."
-                    className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-primary outline-none transition"
+                    placeholder="Search for products, brands and more"
+                    className="w-full pl-12 pr-10 py-2.5 bg-blue-50/50 border border-gray-200 rounded-lg text-gray-800 placeholder-gray-500 focus:border-primary focus:bg-white focus:shadow-md outline-none transition-all"
                 />
                 {query && (
                     <button
                         onClick={() => setQuery('')}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -113,22 +113,21 @@ export default function SearchWithSuggestions({ className = '' }: { className?: 
 
             {/* Suggestions Dropdown */}
             {isOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-[#111] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-lg shadow-lg overflow-hidden z-50">
                     {/* Search Suggestions */}
                     {suggestions.length > 0 && (
-                        <div className="p-2">
-                            <p className="px-3 py-1 text-xs text-gray-500 uppercase">Products</p>
+                        <div className="py-2">
                             {suggestions.map((s) => (
                                 <Link
                                     key={s.id}
                                     href={`/product/${s.slug}`}
                                     onClick={() => setIsOpen(false)}
-                                    className="flex items-center gap-3 px-3 py-2 hover:bg-white/5 rounded-lg transition"
+                                    className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition"
                                 >
-                                    <Search className="w-4 h-4 text-gray-500" />
+                                    <Search className="w-4 h-4 text-gray-400" />
                                     <div>
-                                        <p className="text-sm">{s.name}</p>
-                                        {s.category && <p className="text-xs text-gray-500">{s.category}</p>}
+                                        <p className="text-sm text-gray-800">{s.name}</p>
+                                        {s.category && <p className="text-xs text-primary font-medium">{s.category}</p>}
                                     </div>
                                 </Link>
                             ))}
@@ -137,23 +136,23 @@ export default function SearchWithSuggestions({ className = '' }: { className?: 
 
                     {/* Recent Searches */}
                     {recentSearches.length > 0 && query.length < 2 && (
-                        <div className="p-2 border-t border-white/5">
-                            <p className="px-3 py-1 text-xs text-gray-500 uppercase">Recent Searches</p>
+                        <div className="py-2 border-t border-gray-100">
+                            <p className="px-4 py-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Recent Searches</p>
                             {recentSearches.map((item) => (
                                 <div
                                     key={item}
-                                    className="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded-lg transition group"
+                                    className="flex items-center justify-between px-4 py-2 hover:bg-gray-50 transition group"
                                 >
                                     <button
                                         onClick={() => handleSearch(item)}
                                         className="flex items-center gap-3 flex-1 text-left"
                                     >
-                                        <Clock className="w-4 h-4 text-gray-500" />
-                                        <span className="text-sm">{item}</span>
+                                        <Clock className="w-4 h-4 text-gray-400" />
+                                        <span className="text-sm text-gray-700">{item}</span>
                                     </button>
                                     <button
                                         onClick={() => removeRecent(item)}
-                                        className="text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition"
+                                        className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
                                     >
                                         <X className="w-4 h-4" />
                                     </button>
@@ -164,16 +163,16 @@ export default function SearchWithSuggestions({ className = '' }: { className?: 
 
                     {/* Trending */}
                     {query.length < 2 && (
-                        <div className="p-2 border-t border-white/5">
-                            <p className="px-3 py-1 text-xs text-gray-500 uppercase">Trending</p>
+                        <div className="py-2 border-t border-gray-100">
+                            <p className="px-4 py-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Trending Now</p>
                             {TRENDING.map((item) => (
                                 <button
                                     key={item}
                                     onClick={() => handleSearch(item)}
-                                    className="flex items-center gap-3 w-full px-3 py-2 hover:bg-white/5 rounded-lg transition text-left"
+                                    className="flex items-center gap-3 w-full px-4 py-2 hover:bg-gray-50 transition text-left"
                                 >
                                     <TrendingUp className="w-4 h-4 text-primary" />
-                                    <span className="text-sm">{item}</span>
+                                    <span className="text-sm text-gray-700">{item}</span>
                                 </button>
                             ))}
                         </div>
@@ -181,14 +180,14 @@ export default function SearchWithSuggestions({ className = '' }: { className?: 
 
                     {/* No Results */}
                     {query.length >= 2 && suggestions.length === 0 && !loading && (
-                        <div className="p-4 text-center text-gray-400 text-sm">
-                            No products found for "{query}"
+                        <div className="p-4 text-center text-gray-500 text-sm">
+                            No results found for &quot;{query}&quot;
                         </div>
                     )}
 
                     {/* Loading */}
                     {loading && (
-                        <div className="p-4 text-center text-gray-400 text-sm">
+                        <div className="p-4 text-center text-gray-400 text-sm animate-pulse">
                             Searching...
                         </div>
                     )}

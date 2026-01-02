@@ -10,21 +10,31 @@ export default {
     theme: {
         extend: {
             colors: {
-                // Primary Color - Orange
+                // Primary Brand (Flipkart Blue style but vibrant)
                 primary: {
-                    DEFAULT: "#f97316",
-                    dark: "#ea580c",
-                    light: "#fb923c",
+                    DEFAULT: "#2874f0", // The iconic blue
+                    dark: "#1e5bbf",
+                    light: "#5c92f5",
                 },
-                // Background colors
-                background: "#0a0a0f",
-                card: "#12121a",
-                elevated: "#1a1a24",
-                // Semantic colors
-                deal: "#ef4444",
-                rating: "#fbbf24",
-                success: "#10b981",
-                warning: "#f59e0b",
+                // Secondary (Action/Highlight - Yellow)
+                secondary: {
+                    DEFAULT: "#ffe500", // The iconic yellow
+                    dark: "#e6ce00",
+                },
+                // Backgrounds (Clean Light Mode)
+                background: "#f1f3f6", // Light gray background common in e-commerce
+                surface: "#ffffff",    // Pure white for cards/sections
+
+                // Semantic
+                text: {
+                    primary: "#212121",   // Nearly black
+                    secondary: "#878787", // Gray text
+                    muted: "#c2c2c2",     // Disabled/Placeholder
+                },
+                success: "#388e3c", // Green for offers/stock
+                warning: "#ff9f00", // Orange for limited time
+                error: "#ff6161",
+                border: "#f0f0f0",  // Very subtle border
             },
             fontFamily: {
                 sans: ['Inter', 'system-ui', 'sans-serif'],

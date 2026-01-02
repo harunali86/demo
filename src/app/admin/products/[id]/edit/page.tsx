@@ -3,9 +3,10 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Save, Trash2, Image as ImageIcon, Plus, X } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, Image as ImageIcon, Plus, X, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { PRODUCTS } from '@/data/products';
+import { toast } from 'sonner';
 
 interface ProductForm {
     name: string;
@@ -102,6 +103,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             }
         } catch (error) {
             console.error('Error fetching product:', error);
+            toast.error('Could not load product details');
         } finally {
             setLoading(false);
         }
@@ -129,9 +131,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                     updated_at: new Date().toISOString()
                 });
 
+            toast.success('Product updated successfully');
             router.push('/admin/products');
         } catch (error) {
             console.error('Error saving product:', error);
+            toast.error('Failed to update product');
         } finally {
             setSaving(false);
         }
@@ -142,9 +146,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
         try {
             await supabase.from('products').delete().eq('id', id);
+            toast.success('Product deleted');
             router.push('/admin/products');
         } catch (error) {
             console.error('Error deleting product:', error);
+            toast.error('Failed to delete product');
         }
     };
 
@@ -166,7 +172,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
             </div>
         );
     }
@@ -176,17 +182,17 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <Link href="/admin/products" className="p-2 hover:bg-white/10 rounded-lg transition">
+                    <Link href="/admin/products" className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-500 hover:text-gray-900">
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
                     <div>
-                        <h1 className="text-2xl font-bold">Edit Product</h1>
-                        <p className="text-sm text-gray-400">ID: {id}</p>
+                        <h1 className="text-2xl font-bold text-gray-900">Edit Product</h1>
+                        <p className="text-sm text-gray-500">ID: {id}</p>
                     </div>
                 </div>
                 <button
                     onClick={handleDelete}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition"
+                    className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition border border-red-100"
                 >
                     <Trash2 className="w-4 h-4" />
                     Delete
@@ -195,12 +201,12 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Basic Info */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                    <h2 className="text-lg font-bold mb-4">Basic Information</h2>
+                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                    <h2 className="text-lg font-bold text-gray-900 mb-6">Basic Information</h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">Product Name *</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Product Name *</label>
                             <input
                                 type="text"
                                 value={form.name}
@@ -209,34 +215,34 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                                     name: e.target.value,
                                     slug: generateSlug(e.target.value)
                                 })}
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-primary outline-none"
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">Slug</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Slug</label>
                             <input
                                 type="text"
                                 value={form.slug}
                                 onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-primary outline-none"
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                             />
                         </div>
                         <div className="md:col-span-2">
-                            <label className="block text-sm text-gray-400 mb-1">Description</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
                             <textarea
                                 value={form.description}
                                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                                 rows={4}
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-primary outline-none resize-none"
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none transition-all"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">Category</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
                             <select
                                 value={form.category_id}
                                 onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-primary outline-none"
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                             >
                                 {CATEGORIES.map((cat) => (
                                     <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -244,56 +250,56 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">SKU</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">SKU</label>
                             <input
                                 type="text"
                                 value={form.sku}
                                 onChange={(e) => setForm({ ...form, sku: e.target.value })}
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-primary outline-none"
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                             />
                         </div>
                     </div>
                 </div>
 
                 {/* Pricing */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                    <h2 className="text-lg font-bold mb-4">Pricing & Inventory</h2>
+                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                    <h2 className="text-lg font-bold text-gray-900 mb-6">Pricing & Inventory</h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">Price (₹) *</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Price (₹) *</label>
                             <input
                                 type="number"
                                 value={form.base_price}
                                 onChange={(e) => setForm({ ...form, base_price: parseInt(e.target.value) || 0 })}
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-primary outline-none"
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none font-bold text-gray-900"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">Compare Price (₹)</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Compare Price (₹)</label>
                             <input
                                 type="number"
                                 value={form.compare_price}
                                 onChange={(e) => setForm({ ...form, compare_price: parseInt(e.target.value) || 0 })}
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-primary outline-none"
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                                 placeholder="Higher price to show discount"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm text-gray-400 mb-1">Stock Quantity</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Stock Quantity</label>
                             <input
                                 type="number"
                                 value={form.stock}
                                 onChange={(e) => setForm({ ...form, stock: parseInt(e.target.value) || 0 })}
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-primary outline-none"
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                             />
                         </div>
                     </div>
 
                     {form.compare_price > form.base_price && (
-                        <div className="mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                            <p className="text-green-400 text-sm">
+                        <div className="mt-4 p-3 bg-green-50 border border-green-100 rounded-lg">
+                            <p className="text-green-700 text-sm font-medium">
                                 Discount: {Math.round(((form.compare_price - form.base_price) / form.compare_price) * 100)}% OFF
                             </p>
                         </div>
@@ -301,31 +307,31 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 </div>
 
                 {/* Images */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                    <h2 className="text-lg font-bold mb-4">Images</h2>
+                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                    <h2 className="text-lg font-bold text-gray-900 mb-6">Images</h2>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                         {form.images.map((img, i) => (
-                            <div key={i} className="relative aspect-square bg-white/10 rounded-xl overflow-hidden group">
+                            <div key={i} className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden group border border-gray-200">
                                 <img src={img} alt={`Product ${i + 1}`} className="w-full h-full object-cover" />
                                 <button
                                     type="button"
                                     onClick={() => removeImage(i)}
-                                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition"
+                                    className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition shadow-sm"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
                                 {i === 0 && (
-                                    <span className="absolute bottom-2 left-2 px-2 py-0.5 bg-primary text-black text-xs rounded-full font-medium">
+                                    <span className="absolute bottom-2 left-2 px-2 py-0.5 bg-blue-600 text-white text-xs rounded-full font-medium shadow-sm">
                                         Primary
                                     </span>
                                 )}
                             </div>
                         ))}
 
-                        <div className="aspect-square bg-white/5 border border-dashed border-white/20 rounded-xl flex items-center justify-center">
+                        <div className="aspect-square bg-gray-50 border border-dashed border-gray-300 rounded-xl flex items-center justify-center">
                             <div className="text-center">
-                                <ImageIcon className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+                                <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                                 <p className="text-xs text-gray-500">Add Image</p>
                             </div>
                         </div>
@@ -337,12 +343,12 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                             value={newImageUrl}
                             onChange={(e) => setNewImageUrl(e.target.value)}
                             placeholder="Paste image URL..."
-                            className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-primary outline-none"
+                            className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
                         />
                         <button
                             type="button"
                             onClick={addImage}
-                            className="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition"
+                            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
                         >
                             <Plus className="w-5 h-5" />
                         </button>
@@ -350,44 +356,44 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 </div>
 
                 {/* Status */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                    <h2 className="text-lg font-bold mb-4">Status</h2>
+                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                    <h2 className="text-lg font-bold text-gray-900 mb-6">Status</h2>
 
-                    <div className="flex flex-wrap gap-4">
-                        <label className="flex items-center gap-3 cursor-pointer">
+                    <div className="flex flex-wrap gap-6">
+                        <label className="flex items-center gap-3 cursor-pointer group">
                             <input
                                 type="checkbox"
                                 checked={form.is_active}
                                 onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-                                className="w-5 h-5 rounded bg-white/10 border-white/20 text-primary focus:ring-primary"
+                                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                             />
-                            <span>Active (Visible on store)</span>
+                            <span className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">Active (Visible on store)</span>
                         </label>
-                        <label className="flex items-center gap-3 cursor-pointer">
+                        <label className="flex items-center gap-3 cursor-pointer group">
                             <input
                                 type="checkbox"
                                 checked={form.is_featured}
                                 onChange={(e) => setForm({ ...form, is_featured: e.target.checked })}
-                                className="w-5 h-5 rounded bg-white/10 border-white/20 text-primary focus:ring-primary"
+                                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                             />
-                            <span>Featured (Show in homepage)</span>
+                            <span className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">Featured (Show in homepage)</span>
                         </label>
                     </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-4">
+                <div className="flex gap-4 pt-4">
                     <button
                         type="submit"
                         disabled={saving}
-                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-black rounded-xl font-bold hover:bg-primary/90 transition disabled:opacity-50"
+                        className="flex-1 flex items-center justify-center gap-2 py-4 bg-[#2874f0] text-white rounded-xl font-bold hover:bg-blue-600 transition disabled:opacity-50 shadow-lg shadow-blue-500/20"
                     >
-                        <Save className="w-5 h-5" />
+                        {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                         {saving ? 'Saving...' : 'Save Changes'}
                     </button>
                     <Link
                         href="/admin/products"
-                        className="px-6 py-3 bg-white/10 rounded-xl font-medium hover:bg-white/20 transition"
+                        className="px-8 py-4 bg-white border border-gray-200 rounded-xl font-medium hover:bg-gray-50 transition text-gray-700"
                     >
                         Cancel
                     </Link>

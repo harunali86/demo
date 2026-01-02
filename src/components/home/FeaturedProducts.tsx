@@ -31,32 +31,31 @@ export default function FeaturedProducts() {
     const featured = hasFilters ? filtered : filtered.slice(0, 10);
 
     return (
-        <section className="bg-[#1a1a1a] py-5 rounded-lg">
-            <div className="px-4">
+        <section className="bg-white py-4 md:py-6 shadow-sm border-b border-gray-200">
+            <div className="max-w-[1248px] mx-auto px-4">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-[18px] sm:text-[21px] font-bold text-[#e3e6e6]">
-                        {hasFilters ? `Results (${featured.length})` : 'Popular Products'}
+                    <h2 className="text-[18px] sm:text-[22px] font-bold text-gray-900">
+                        {hasFilters ? `Results (${featured.length})` : 'Best of Electronics'}
                     </h2>
                     <Link
                         href="/shop"
-                        className="flex items-center gap-1 text-[12px] sm:text-[13px] text-[#56c5d3] hover:text-[#febd69] hover:underline"
+                        className="flex items-center justify-center bg-primary hover:bg-blue-600 text-white text-[13px] font-medium px-4 py-2 rounded-[2px] shadow-sm transition-colors"
                     >
-                        See all deals
-                        <ChevronRight className="w-4 h-4" />
+                        VIEW ALL
                     </Link>
                 </div>
 
                 {featured.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {featured.map((product, i) => (
                             <ProductCard key={product.id} {...product} index={i} />
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-16">
-                        <p className="text-[#999]">No products match your filters</p>
-                        <Link href="/" className="text-[#56c5d3] hover:underline mt-2 inline-block">
+                    <div className="text-center py-16 bg-white">
+                        <p className="text-gray-500">No products match your filters</p>
+                        <Link href="/" className="text-primary hover:underline mt-2 inline-block">
                             Clear Filters
                         </Link>
                     </div>

@@ -3,13 +3,14 @@
 import { useAuthStore } from '@/store/auth';
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Package, Heart, Settings, LogOut, User, MapPin, Mail, Phone, Upload } from 'lucide-react';
+import { Package, Heart, Settings, LogOut, User, MapPin, Mail, Phone, Upload, ChevronRight, Power } from 'lucide-react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import AddressList from '@/components/profile/AddressList';
 import AvatarUpload from '@/components/profile/AvatarUpload';
 import { toast } from 'sonner';
 import Navbar from '@/components/ui/Navbar';
+import Footer from '@/components/ui/Footer';
 
 export const dynamic = 'force-dynamic';
 
@@ -115,7 +116,6 @@ function ProfileContent() {
             updateUser({ name: `${updates.first_name} ${updates.last_name}`.trim() });
 
             toast.success('Profile updated successfully!');
-            // Optionally update auth store user name if needed
         } catch (error) {
             console.error('Error updating profile:', error);
             toast.error('Failed to update profile.');
@@ -132,263 +132,233 @@ function ProfileContent() {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'delivered': return 'bg-green-500/20 text-green-400';
-            case 'shipped': return 'bg-blue-500/20 text-blue-400';
-            case 'processing': return 'bg-yellow-500/20 text-yellow-400';
-            case 'cancelled': return 'bg-red-500/20 text-red-400';
-            default: return 'bg-gray-500/20 text-gray-400';
+            case 'delivered': return 'text-green-600';
+            case 'shipped': return 'text-blue-600';
+            case 'cancelled': return 'text-red-500';
+            default: return 'text-orange-500';
         }
     };
 
     if (!isAuthenticated) return null;
 
     const TABS = [
-        { id: 'overview', label: 'Overview', icon: User },
-        { id: 'orders', label: 'Orders', icon: Package },
-        { id: 'addresses', label: 'Addresses', icon: MapPin },
-        { id: 'settings', label: 'Settings', icon: Settings },
+        { id: 'overview', label: 'My Profile', icon: User },
+        { id: 'orders', label: 'My Orders', icon: Package },
+        { id: 'addresses', label: 'Manage Addresses', icon: MapPin },
+        { id: 'settings', label: 'Profile Information', icon: Settings },
     ];
 
     return (
-        <>
+        <div className="min-h-screen bg-[#f1f3f6] font-sans text-gray-900">
             <Navbar />
-            <div className="min-h-screen bg-[#0f1111] text-[#e3e6e6] pt-4 pb-12">
-                <div className="max-w-6xl mx-auto px-4">
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                        {/* Sidebar / User Info */}
-                        <div className="space-y-6">
-                            <div className="bg-[#1a1a1a] rounded-xl p-6 border border-[#3d4f5f] text-center">
-                                <div className="mb-4">
-                                    <AvatarUpload
-                                        url={profileData.avatar_url || null}
-                                        onUpload={(url) => {
-                                            setProfileData(prev => ({ ...prev, avatar_url: url }));
-                                            // Auto-save when avatar changes
-                                            if (user?.id) {
-                                                supabase.from('profiles')
-                                                    // @ts-ignore
-                                                    .update({ avatar_url: url })
-                                                    .eq('id', user.id).then(({ error }) => {
-                                                        if (error) toast.error('Failed to update avatar');
-                                                        else toast.success('Avatar updated');
-                                                    });
-                                            }
-                                        }}
-                                    />
-                                </div>
-                                <h2 className="text-xl font-bold">
-                                    {profileData.first_name ? `${profileData.first_name} ${profileData.last_name}` : (user?.name || 'User')}
-                                </h2>
-                                <p className="text-gray-400 text-sm mt-1">{user?.email}</p>
-                                {isGuest && (
-                                    <span className="inline-block mt-3 px-3 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">
-                                        Guest Account
-                                    </span>
+            <div className="max-w-[1248px] mx-auto px-4 py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4">
+                    {/* Sidebar */}
+                    <div className="space-y-4">
+                        {/* User Card */}
+                        <div className="bg-white p-3 rounded-[2px] shadow-sm flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-100 relative">
+                                {profileData.avatar_url ? (
+                                    <img src={profileData.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full bg-blue-50 flex items-center justify-center text-primary font-bold">
+                                        {user?.name?.[0]?.toUpperCase() || 'U'}
+                                    </div>
                                 )}
                             </div>
-
-                            {/* Navigation Tabs */}
-                            <div className="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800">
-                                {TABS.map((tab) => (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => setActiveTab(tab.id)}
-                                        className={`w-full flex items-center gap-3 px-6 py-4 text-left transition hover:bg-zinc-800 ${activeTab === tab.id ? 'bg-zinc-800 border-l-4 border-primary text-white' : 'text-gray-400 border-l-4 border-transparent'
-                                            }`}
-                                    >
-                                        <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-primary' : ''}`} />
-                                        <span className="font-medium">{tab.label}</span>
-                                    </button>
-                                ))}
-                                <Link
-                                    href="/admin"
-                                    className="w-full flex items-center gap-3 px-6 py-4 text-left text-orange-500 hover:bg-orange-500/10 transition border-l-4 border-transparent"
-                                >
-                                    <Settings className="w-5 h-5" />
-                                    <span className="font-medium">Admin Panel</span>
-                                </Link>
-                                <button
-                                    onClick={handleLogout}
-                                    className="w-full flex items-center gap-3 px-6 py-4 text-left text-red-500 hover:bg-red-500/10 transition border-l-4 border-transparent"
-                                >
-                                    <LogOut className="w-5 h-5" />
-                                    <span className="font-medium">Logout</span>
-                                </button>
+                            <div>
+                                <p className="text-xs text-gray-500">Hello,</p>
+                                <h3 className="font-medium text-gray-900">
+                                    {profileData.first_name ? `${profileData.first_name} ${profileData.last_name}` : (user?.name || 'User')}
+                                </h3>
                             </div>
                         </div>
 
-                        {/* Main Content Area */}
-                        <div className="lg:col-span-3">
-                            {loading ? (
-                                <div className="flex items-center justify-center h-64">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                                </div>
-                            ) : (
-                                <div className="space-y-6">
-                                    {/* OVERVIEW TAB */}
-                                    {activeTab === 'overview' && (
-                                        <>
-                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                                <div className="bg-zinc-900 rounded-2xl p-6 border border-zinc-800">
-                                                    <p className="text-gray-400 mb-1">Total Orders</p>
-                                                    <p className="text-2xl font-bold">{orders.length}</p>
-                                                </div>
-                                                <div className="bg-zinc-900 rounded-2xl p-6 border border-zinc-800">
-                                                    <p className="text-gray-400 mb-1">Member Since</p>
-                                                    <p className="text-lg font-bold">2024</p>
-                                                </div>
-                                                <Link href="/wishlist" className="bg-zinc-900 rounded-2xl p-6 border border-zinc-800 hover:border-pink-500/50 transition group">
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <p className="text-gray-400">Wishlist</p>
-                                                        <Heart className="w-5 h-5 text-gray-600 group-hover:text-pink-500 transition" />
+                        {/* Navigation */}
+                        <div className="bg-white rounded-[2px] shadow-sm overflow-hidden">
+                            {TABS.map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`w-full flex items-center gap-4 px-6 py-4 text-left border-b border-gray-50 hover:bg-blue-50 hover:text-primary transition-colors ${activeTab === tab.id ? 'bg-blue-50 text-primary font-medium' : 'text-gray-600'
+                                        }`}
+                                >
+                                    <tab.icon className="w-5 h-5 text-current opacity-70" />
+                                    <span className="text-[14px] uppercase font-medium">{tab.label}</span>
+                                </button>
+                            ))}
+
+                            <button
+                                onClick={handleLogout}
+                                className="w-full flex items-center gap-4 px-6 py-4 text-left border-b border-gray-50 hover:bg-blue-50 hover:text-primary transition-colors text-gray-600"
+                            >
+                                <Power className="w-5 h-5 text-current opacity-70" />
+                                <span className="text-[14px] uppercase font-medium">Logout</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Main Content Area */}
+                    <div className="bg-white rounded-[2px] shadow-sm p-6 min-h-[500px]">
+                        {loading ? (
+                            <div className="flex items-center justify-center h-64">
+                                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                            </div>
+                        ) : (
+                            <>
+                                {/* OVERVIEW TAB */}
+                                {activeTab === 'overview' && (
+                                    <div>
+                                        <h2 className="text-lg font-medium text-gray-900 mb-6">Personal Information</h2>
+
+                                        <div className="space-y-6 max-w-lg">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-full">
+                                                    <label className="text-sm text-gray-500 mb-2 block">First Name</label>
+                                                    <div className="bg-gray-50 p-3 rounded-sm border border-gray-200 text-gray-900 font-medium">
+                                                        {profileData.first_name || '-'}
                                                     </div>
-                                                    <p className="text-sm text-primary">View Items</p>
-                                                </Link>
+                                                </div>
+                                                <div className="w-full">
+                                                    <label className="text-sm text-gray-500 mb-2 block">Last Name</label>
+                                                    <div className="bg-gray-50 p-3 rounded-sm border border-gray-200 text-gray-900 font-medium">
+                                                        {profileData.last_name || '-'}
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            <div className="bg-zinc-900 rounded-3xl border border-zinc-800 overflow-hidden">
-                                                <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
-                                                    <h2 className="text-xl font-bold">Recent Orders</h2>
-                                                    <Link href="/orders/track" className="text-primary text-sm hover:underline">View All</Link>
-                                                </div>
-                                                <div className="divide-y divide-zinc-800">
-                                                    {orders.length === 0 ? (
-                                                        <div className="p-8 text-center text-gray-400">No orders yet.</div>
-                                                    ) : (
-                                                        orders.map((order) => (
-                                                            <div key={order.id} className="p-4 flex items-center justify-between hover:bg-zinc-800/50 transition">
-                                                                <div>
-                                                                    <p className="font-semibold">{order.order_number}</p>
-                                                                    <p className="text-sm text-gray-400">
-                                                                        {new Date(order.created_at).toLocaleDateString()}
-                                                                    </p>
-                                                                </div>
-                                                                <div className="text-right">
-                                                                    <p className="font-bold">₹{order.total.toLocaleString()}</p>
-                                                                    <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(order.status)}`}>{order.status}</span>
-                                                                </div>
-                                                            </div>
-                                                        ))
-                                                    )}
+                                            <div>
+                                                <label className="text-sm text-gray-500 mb-2 block">Email Address</label>
+                                                <div className="bg-gray-50 p-3 rounded-sm border border-gray-200 text-gray-900 font-medium flex justify-between">
+                                                    {profileData.email}
+                                                    <span className="text-xs text-primary font-medium cursor-pointer uppercase">Edit</span>
                                                 </div>
                                             </div>
-                                        </>
-                                    )}
 
-                                    {/* ORDERS TAB */}
-                                    {activeTab === 'orders' && (
-                                        <div className="bg-zinc-900 rounded-3xl border border-zinc-800 overflow-hidden">
-                                            <div className="p-6 border-b border-zinc-800">
-                                                <h2 className="text-xl font-bold">Order History</h2>
+                                            <div>
+                                                <label className="text-sm text-gray-500 mb-2 block">Mobile Number</label>
+                                                <div className="bg-gray-50 p-3 rounded-sm border border-gray-200 text-gray-900 font-medium flex justify-between">
+                                                    {profileData.phone || '-'}
+                                                    <span className="text-xs text-primary font-medium cursor-pointer uppercase">Edit</span>
+                                                </div>
                                             </div>
-                                            {/* Simplified list, reusing overview logic but could be paginated */}
-                                            <div className="divide-y divide-zinc-800">
-                                                {orders.map((order) => (
-                                                    <div key={order.id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-zinc-800/50 transition">
-                                                        <div>
-                                                            <p className="font-bold text-lg">{order.order_number}</p>
-                                                            <p className="text-sm text-gray-400">Placed on {new Date(order.created_at).toLocaleDateString()}</p>
-                                                        </div>
-                                                        <div className="flex items-center gap-6">
-                                                            <div className="text-right">
-                                                                <p className="font-bold">₹{order.total.toLocaleString()}</p>
-                                                                <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(order.status)}`}>{order.status}</span>
-                                                            </div>
-                                                            <Link href={`/orders/track?order=${order.order_number}`} className="px-4 py-2 bg-white/5 rounded-lg hover:bg-white/10 transition text-sm">
-                                                                View Details
-                                                            </Link>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                                <div className="p-6 text-center">
-                                                    <Link href="/orders/track" className="text-primary hover:underline">
-                                                        Go to Full Order Tracking Page
-                                                    </Link>
+
+                                            <div className="pt-4">
+                                                <h3 className="text-sm font-medium text-gray-900 mb-4">FAQs</h3>
+                                                <div className="space-y-3">
+                                                    <p className="text-sm font-medium">What happens when I update my email address (or mobile number)?</p>
+                                                    <p className="text-xs text-gray-500">Your login email id (or mobile number) changes, likewise. You'll receive all your account related communication on your updated email address (or mobile number).</p>
                                                 </div>
                                             </div>
                                         </div>
-                                    )}
+                                    </div>
+                                )}
 
-                                    {/* ADDRESSES TAB */}
-                                    {activeTab === 'addresses' && (
-                                        <AddressList />
-                                    )}
-
-                                    {/* SETTINGS TAB */}
-                                    {activeTab === 'settings' && (
-                                        <div className="bg-zinc-900 rounded-3xl border border-zinc-800 p-6">
-                                            <h2 className="text-xl font-bold mb-6">Profile Settings</h2>
-                                            <form onSubmit={handleUpdateProfile} className="space-y-6">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    <div>
-                                                        <label className="block text-sm text-gray-400 mb-2">First Name</label>
-                                                        <input
-                                                            type="text"
-                                                            value={profileData.first_name}
-                                                            onChange={(e) => setProfileData({ ...profileData, first_name: e.target.value })}
-                                                            className="w-full bg-black border border-zinc-700 rounded-xl px-4 py-3 focus:border-primary outline-none text-white"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-sm text-gray-400 mb-2">Last Name</label>
-                                                        <input
-                                                            type="text"
-                                                            value={profileData.last_name}
-                                                            onChange={(e) => setProfileData({ ...profileData, last_name: e.target.value })}
-                                                            className="w-full bg-black border border-zinc-700 rounded-xl px-4 py-3 focus:border-primary outline-none text-white"
-                                                        />
-                                                    </div>
+                                {/* ORDERS TAB */}
+                                {activeTab === 'orders' && (
+                                    <div>
+                                        <h2 className="text-lg font-medium text-gray-900 mb-6">My Orders ({orders.length})</h2>
+                                        <div className="space-y-4">
+                                            {orders.length === 0 ? (
+                                                <div className="text-center py-12">
+                                                    <img src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/myorders-empty_d6883b.png" alt="No Orders" className="mx-auto h-32 mb-4" />
+                                                    <p className="text-lg font-medium text-gray-900">No orders found</p>
+                                                    <p className="text-sm text-gray-500 mt-1">Check out our bestsellers</p>
+                                                    <Link href="/" className="inline-block mt-4 bg-primary text-white font-medium px-8 py-2.5 rounded-[2px] shadow-sm uppercase text-sm">Start Shopping</Link>
                                                 </div>
+                                            ) : (
+                                                orders.map((order) => (
+                                                    <div key={order.id} className="border border-gray-200 rounded-[2px] p-4 hover:shadow-md transition-shadow cursor-pointer flex gap-4">
+                                                        <div className="w-20 h-20 bg-gray-50 flex items-center justify-center p-2">
+                                                            <Package className="w-8 h-8 text-gray-400" />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <div className="flex justify-between mb-2">
+                                                                <h3 className="font-medium text-gray-900">Order #{order.order_number}</h3>
+                                                                <span className={`text-sm font-medium capitalize flex items-center gap-1 ${getStatusColor(order.status)}`}>
+                                                                    <div className={`w-2 h-2 rounded-full bg-current`}></div>
+                                                                    {order.status}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-xs text-gray-500 mb-3">Ordered on {new Date(order.created_at).toLocaleDateString()}</p>
+                                                            <div className="flex items-center gap-4">
+                                                                <span className="font-medium text-gray-900">₹{order.total.toLocaleString()}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
 
+                                {/* ADDRESSES TAB */}
+                                {activeTab === 'addresses' && (
+                                    <div>
+                                        <h2 className="text-lg font-medium text-gray-900 mb-6">Manage Addresses</h2>
+                                        <AddressList />
+                                    </div>
+                                )}
+
+                                {/* SETTINGS TAB */}
+                                {activeTab === 'settings' && (
+                                    <div>
+                                        <h2 className="text-lg font-medium text-gray-900 mb-6">Profile Settings</h2>
+                                        <form onSubmit={handleUpdateProfile} className="space-y-6 max-w-lg">
+                                            <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-sm text-gray-400 mb-2 mr-2">Phone Number</label>
+                                                    <label className="block text-sm text-gray-500 mb-2">First Name</label>
                                                     <input
-                                                        type="tel"
-                                                        value={profileData.phone}
-                                                        onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                                                        className="w-full bg-black border border-zinc-700 rounded-xl px-4 py-3 focus:border-primary outline-none text-white"
+                                                        type="text"
+                                                        value={profileData.first_name}
+                                                        onChange={(e) => setProfileData({ ...profileData, first_name: e.target.value })}
+                                                        className="w-full border border-gray-300 rounded-[2px] px-3 py-2.5 text-sm focus:border-primary outline-none"
                                                     />
                                                 </div>
-
                                                 <div>
-                                                    <label className="block text-sm text-gray-400 mb-2">Email Address</label>
-                                                    <div className="relative">
-                                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                                                        <input
-                                                            type="email"
-                                                            value={profileData.email}
-                                                            disabled
-                                                            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl pl-12 pr-4 py-3 text-gray-400 cursor-not-allowed"
-                                                        />
-                                                    </div>
-                                                    <p className="text-xs text-gray-500 mt-1">Email cannot be changed.</p>
+                                                    <label className="block text-sm text-gray-500 mb-2">Last Name</label>
+                                                    <input
+                                                        type="text"
+                                                        value={profileData.last_name}
+                                                        onChange={(e) => setProfileData({ ...profileData, last_name: e.target.value })}
+                                                        className="w-full border border-gray-300 rounded-[2px] px-3 py-2.5 text-sm focus:border-primary outline-none"
+                                                    />
                                                 </div>
+                                            </div>
 
-                                                <div className="pt-4 border-t border-zinc-800">
-                                                    <button
-                                                        type="submit"
-                                                        disabled={updatingProfile}
-                                                        className="px-8 py-3 bg-primary text-black font-bold rounded-xl hover:bg-primary/90 transition disabled:opacity-50"
-                                                    >
-                                                        {updatingProfile ? 'Saving...' : 'Save Changes'}
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
+                                            <div>
+                                                <label className="block text-sm text-gray-500 mb-2">Phone Number</label>
+                                                <input
+                                                    type="tel"
+                                                    value={profileData.phone}
+                                                    onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                                                    className="w-full border border-gray-300 rounded-[2px] px-3 py-2.5 text-sm focus:border-primary outline-none"
+                                                />
+                                            </div>
+
+                                            <button
+                                                type="submit"
+                                                disabled={updatingProfile}
+                                                className="bg-primary text-white font-medium px-8 py-3 rounded-[2px] shadow-sm uppercase text-sm disabled:opacity-50"
+                                            >
+                                                {updatingProfile ? 'Saving...' : 'Save Changes'}
+                                            </button>
+                                        </form>
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
-        </>
+            <Footer />
+        </div>
     );
 }
 
 export default function ProfilePage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-[#0f1111] text-white flex items-center justify-center">Loading...</div>}>
+        <Suspense fallback={<div className="min-h-screen bg-[#f1f3f6]"></div>}>
             <ProfileContent />
         </Suspense>
     );

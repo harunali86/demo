@@ -27,7 +27,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
         } else if (sortBy === 'price_high') {
             result.sort((a, b) => b.price - a.price);
         }
-        // Newest default (no specific date in mock data so assume file order/index, logic can be added later)
+        // Newest default logic
 
         return result;
     }, [baseProducts, priceRange, sortBy]);
@@ -35,56 +35,68 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
     const categoryName = slug.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
     return (
-        <div className="min-h-screen bg-black text-white font-sans selection:bg-primary/30">
+        <div className="min-h-screen bg-[#f1f3f6] font-sans">
             <Navbar />
 
-            <main className="pt-24 pb-16 px-4 md:px-8 max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
-
-                {/* Mobile Filter Toggle */}
-                <button
-                    onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-                    className="md:hidden flex items-center justify-center gap-2 bg-white/10 p-3 rounded-lg font-bold mb-4"
-                >
-                    <Menu className="w-5 h-5" />
-                    Filters & Sort
-                </button>
+            <div className="pt-20 pb-8 px-2 max-w-[1600px] mx-auto flex gap-2">
 
                 {/* Sidebar - Desktop (Always Visible) & Mobile (Toggle) */}
-                <div className={`${mobileFilterOpen ? 'block' : 'hidden'} md:block w-full md:w-auto`}>
-                    <SidebarFilter
-                        minPrice={0}
-                        maxPrice={300000}
-                        onPriceChange={(min, max) => setPriceRange({ min, max })}
-                        onSortChange={setSortBy}
-                    />
+                <div className={`
+                    fixed inset-0 z-40 bg-black/50 md:static md:bg-transparent md:block md:w-[280px] md:shrink-0
+                    ${mobileFilterOpen ? 'block' : 'hidden'}
+                `} onClick={() => setMobileFilterOpen(false)}>
+                    <div
+                        className="h-full w-[280px] md:w-full bg-white md:rounded-sm shadow-sm p-4 overflow-y-auto"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <SidebarFilter
+                            minPrice={0}
+                            maxPrice={300000}
+                            onPriceChange={(min, max) => setPriceRange({ min, max })}
+                            onSortChange={setSortBy}
+                        />
+                    </div>
                 </div>
 
-                {/* Product Grid */}
+                {/* Main Content */}
                 <div className="flex-1">
-                    <div className="mb-8">
-                        <p className="text-gray-400 text-sm mb-2 uppercase tracking-widest">Collection</p>
-                        <h1 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-500">
-                            {categoryName}
-                        </h1>
+                    {/* Header & Mobile Toggle */}
+                    <div className="bg-white p-4 mb-2 shadow-sm rounded-sm flex items-center justify-between">
+                        <div>
+                            <h1 className="text-lg font-medium text-gray-900">
+                                {categoryName}
+                                <span className="text-xs text-gray-500 ml-2 font-normal">
+                                    (Showing {filteredProducts.length} items)
+                                </span>
+                            </h1>
+                        </div>
+                        <button
+                            onClick={() => setMobileFilterOpen(true)}
+                            className="md:hidden flex items-center gap-2 text-sm font-medium text-blue-600"
+                        >
+                            <Menu className="w-4 h-4" />
+                            Filters
+                        </button>
                     </div>
 
+                    {/* Product Grid */}
                     {filteredProducts.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                             {filteredProducts.map((product, i) => (
                                 <ProductCard key={product.id} {...product} index={i} />
                             ))}
                         </div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center py-20 text-center bg-white/5 rounded-3xl border border-white/10">
-                            <div className="p-6 rounded-full bg-white/5 mb-4">
+                        <div className="bg-white p-12 text-center rounded-sm shadow-sm">
+                            <div className="w-24 h-24 mx-auto mb-6 bg-gray-50 rounded-full flex items-center justify-center">
                                 <span className="text-4xl">🛍️</span>
                             </div>
-                            <h2 className="text-2xl font-bold mb-2">No Products in Range</h2>
-                            <p className="text-gray-400">Try adjusting your price filter.</p>
+                            <h2 className="text-xl font-medium text-gray-900 mb-2">No Products Found</h2>
+                            <p className="text-gray-500">Try adjusting your filters to find what you're looking for.</p>
                         </div>
                     )}
                 </div>
-            </main>
+            </div>
         </div>
     );
 }

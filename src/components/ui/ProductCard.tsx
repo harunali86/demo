@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Heart, Star } from 'lucide-react';
+import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cart';
@@ -24,34 +24,19 @@ const getReviewCount = (id: string) => {
 };
 
 export default function ProductCard({ id, name, price, cat, img, sale, index = 0 }: ProductProps) {
-    const addItem = useCartStore((state) => state.addItem);
     const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore();
     const reviewCount = getReviewCount(id);
-    const rating = (4.0 + (reviewCount % 10) / 10).toFixed(1);
+    const rating = (3.8 + (reviewCount % 12) / 10).toFixed(1);
     const inWishlist = isInWishlist(id);
     const [mounted, setMounted] = useState(false);
     const discount = sale ? Math.round(((sale - price) / sale) * 100) : 0;
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 
     const showWishlisted = mounted && inWishlist;
-
-    const handleAddToCart = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        addItem({
-            id, name, base_price: price, category_id: cat,
-            images: [{ url: img }],
-            slug: name.toLowerCase().replace(/ /g, '-'),
-            description: 'Premium product',
-            compare_price: sale || null,
-            is_active: true, is_featured: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-        } as any);
-    };
 
     const handleWishlist = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -65,80 +50,75 @@ export default function ProductCard({ id, name, price, cat, img, sale, index = 0
 
     return (
         <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: index * 0.03 }}
-            className="group"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ y: -5 }}
+            transition={{ duration: 0.2 }}
+            className="group relative bg-white hover:shadow-xl transition-shadow duration-300 rounded-lg overflow-hidden border border-gray-100/50 hover:border-gray-200 flex flex-col h-full"
         >
-            <Link
-                href={`/product/${name.toLowerCase().replace(/ /g, '-')}`}
-                className="block bg-white dark:bg-[#1a1a1a] p-3 hover:shadow-card transition-shadow relative"
-            >
+            <Link href={`/product/${name.toLowerCase().replace(/ /g, '-')}`} className="flex flex-col h-full p-4">
                 {/* Wishlist Button */}
-                <button
+                <motion.button
+                    whileTap={{ scale: 0.8 }}
                     onClick={handleWishlist}
-                    className={`absolute top-2 right-2 z-10 p-1.5 rounded-full transition-colors ${showWishlisted ? 'text-[#cc0c39]' : 'text-gray-400 hover:text-[#cc0c39]'
-                        }`}
+                    className="absolute top-3 right-3 z-10 text-gray-300 hover:text-red-500 transition-colors"
                 >
-                    <Heart className={`w-5 h-5 ${showWishlisted ? 'fill-current' : ''}`} />
-                </button>
+                    <Heart className={`w-5 h-5 ${showWishlisted ? 'fill-red-500 text-red-500' : 'fill-transparent'}`} />
+                </motion.button>
 
                 {/* Image */}
-                <div className="relative aspect-square mb-2 bg-white dark:bg-[#1a1a1a]">
+                <div className="relative aspect-[4/5] w-full mb-4">
                     <Image
                         src={img}
                         alt={name}
                         fill
-                        className="object-contain p-2 group-hover:scale-105 transition-transform duration-200"
+                        className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
                     />
                 </div>
 
-                {/* Product Info */}
-                <div className="space-y-1">
+                {/* Content */}
+                <div className="flex flex-col gap-1 flex-1">
                     {/* Title */}
-                    <h3 className="text-[13px] text-[#0f1111] dark:text-[#e3e6e6] line-clamp-2 group-hover:text-[#c45500] dark:group-hover:text-[#ff9900] transition-colors leading-tight">
+                    <h3 className="text-sm text-gray-800 font-medium line-clamp-2 group-hover:text-primary transition-colors">
                         {name}
                     </h3>
 
-                    {/* Rating */}
-                    <div className="flex items-center gap-1">
-                        <div className="flex items-center text-[#de7921]">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                                <Star
-                                    key={star}
-                                    className={`w-3.5 h-3.5 ${star <= Math.floor(Number(rating)) ? 'fill-current' : ''}`}
-                                />
-                            ))}
+                    {/* Rating & Reviews */}
+                    <div className="flex items-center gap-2 mt-1">
+                        <div className="flex items-center gap-1 bg-green-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-[3px]">
+                            {rating} <Star className="w-2.5 h-2.5 fill-current" />
                         </div>
-                        <span className="text-[12px] text-[#007185] dark:text-[#56c5d3]">
-                            {reviewCount.toLocaleString()}
+                        <span className="text-xs text-gray-500 font-medium">
+                            ({reviewCount.toLocaleString()})
                         </span>
+                        {/* Assured Badge Simulation */}
+                        <div className="ml-auto w-16 h-5 relative grayscale group-hover:grayscale-0 transition-all opacity-70 group-hover:opacity-100">
+                            <Image
+                                src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/fa_62673a.png"
+                                alt="Assured"
+                                fill
+                                className="object-contain"
+                            />
+                        </div>
                     </div>
 
-                    {/* Price */}
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-[12px] text-[#0f1111] dark:text-[#e3e6e6]">₹</span>
-                        <span className="text-[21px] text-[#0f1111] dark:text-[#e3e6e6] font-medium">
-                            {price.toLocaleString()}
-                        </span>
+                    {/* Price Block */}
+                    <div className="mt-2 flex items-center gap-2 flex-wrap">
+                        <span className="text-base font-bold text-gray-900">₹{price.toLocaleString()}</span>
+                        {sale && (
+                            <>
+                                <span className="text-sm text-gray-500 line-through">₹{sale.toLocaleString()}</span>
+                                <span className="text-sm font-bold text-green-600">{discount}% off</span>
+                            </>
+                        )}
                     </div>
 
-                    {/* Original price and discount */}
-                    {sale && (
-                        <div className="flex items-center gap-2 text-[12px]">
-                            <span className="text-[#565959] dark:text-[#999] line-through">
-                                ₹{sale.toLocaleString()}
-                            </span>
-                            <span className="text-[#cc0c39] font-medium">
-                                ({discount}% off)
-                            </span>
+                    {/* Free Delivery Tag */}
+                    {price > 500 && (
+                        <div className="text-[11px] text-gray-500 mt-1 flex items-center gap-1">
+                            Free delivery
                         </div>
                     )}
-
-                    {/* Prime delivery */}
-                    <p className="text-[12px] text-[#565959] dark:text-[#999]">
-                        FREE delivery <strong className="text-[#0f1111] dark:text-[#e3e6e6]">Tomorrow</strong>
-                    </p>
                 </div>
             </Link>
         </motion.div>

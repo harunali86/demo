@@ -11,7 +11,7 @@ import FilterBar from "@/components/home/FilterBar";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#0a0a0f]">
+    <main className="min-h-screen bg-[#f1f3f6]">
       <Navbar />
       <HeroCarousel />
       <CategoryRail />

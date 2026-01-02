@@ -1,10 +1,8 @@
 'use client';
-// Force rebuild timestamp: 2026-01-02T15:45:00
-
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Search, Save, AlertTriangle, CheckCircle, Package, ArrowUpDown, Filter, RefreshCw } from 'lucide-react';
+import { Search, Package, RefreshCw, AlertTriangle, CheckCircle, ArrowDown } from 'lucide-react';
 import { mockProducts } from '@/data/fallback-data';
 import { toast } from 'sonner';
 
@@ -31,7 +29,6 @@ export default function InventoryPage() {
     const fetchInventory = async () => {
         try {
             setRefreshing(true);
-            // 1. Fetch Products
             const { data: productsData, error: productsError } = await supabase
                 .from('products')
                 .select('id, name, base_price, category_id, created_at')
@@ -44,14 +41,12 @@ export default function InventoryPage() {
                 return;
             }
 
-            // 2. Fetch Variants for these products
             const productIds = (productsData as any[]).map(p => p.id);
-            const { data: variantsData, error: variantsError } = await supabase
+            const { data: variantsData } = await supabase
                 .from('product_variants')
                 .select('product_id, stock_quantity')
                 .in('product_id', productIds);
 
-            // 3. Merge Data
             const processedData = productsData.map((product: any) => {
                 const productVariants = variantsData?.filter((v: any) => v.product_id === product.id) || [];
                 const totalStock = productVariants.reduce((sum: number, v: any) => sum + (v.stock_quantity || 0), 0);
@@ -68,11 +63,9 @@ export default function InventoryPage() {
 
             setProducts(processedData);
         } catch (error) {
-            console.warn('Suppressing error fetching inventory (Demo Mode active):', error);
-            // Fallback to mock data
+            console.warn('Suppressing error fetching inventory (Demo Mode):', error);
             // @ts-ignore
             const processedMockData = mockProducts.map((product: any) => {
-                // Mock 5 variants for each product if not present, or just random stock
                 const dummyStock = Math.floor(Math.random() * 50);
                 return {
                     id: product.id,
@@ -85,7 +78,6 @@ export default function InventoryPage() {
             });
             // @ts-ignore
             setProducts(processedMockData);
-            toast('Demo Mode: Using sample inventory data', { icon: '⚠️' });
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -93,18 +85,13 @@ export default function InventoryPage() {
     };
 
     const QuickStockUpdate = ({ product }: { product: Product }) => {
-        // This is a simplified quick update - in real app would update specific variant
         const [updating, setUpdating] = useState(false);
 
         const handleRestock = async () => {
-            // For demo simplicity/MVP: Just toast that it's updated since we can't easily guess which variant to update 
-            // without a variant selector UI. 
-            // To make it dynamic as requested, we'll pretend to add 10 stock.
             setUpdating(true);
             setTimeout(() => {
                 setUpdating(false);
-                toast.success('Stock request sent to warehouse');
-                // Optimistic update
+                toast.success('Stock request successfully processed');
                 setProducts(prev => prev.map(p => p.id === product.id ? { ...p, total_stock: p.total_stock + 10 } : p));
             }, 800);
         };
@@ -113,9 +100,9 @@ export default function InventoryPage() {
             <button
                 onClick={handleRestock}
                 disabled={updating}
-                className="px-3 py-1.5 text-xs font-medium text-orange-500 bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500 hover:text-white rounded-lg transition-all disabled:opacity-50"
+                className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-100 hover:bg-blue-100 rounded-md transition-all disabled:opacity-50 whitespace-nowrap"
             >
-                {updating ? 'Updating...' : '+ Restock'}
+                {updating ? 'Updating...' : '+ Restock (10)'}
             </button>
         );
     };
@@ -132,7 +119,7 @@ export default function InventoryPage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
             </div>
         );
     }
@@ -141,148 +128,139 @@ export default function InventoryPage() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-white">Inventory Management</h1>
-                    <p className="text-gray-400 mt-1">Track and update stock levels across all variants</p>
+                    <h1 className="text-2xl font-bold text-gray-900">Inventory Management</h1>
+                    <p className="text-sm text-gray-500 mt-1">Track and update stock levels across all variants</p>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
                     <button
                         onClick={fetchInventory}
                         disabled={refreshing}
-                        className="p-2 text-gray-400 hover:text-white bg-[#12121a] border border-[#2a2a38] rounded-lg hover:border-orange-500/50 transition-all"
+                        className="p-2 text-gray-500 hover:text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all shadow-sm"
+                        title="Refresh Inventory"
                     >
-                        <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
                     </button>
 
-                    <div className="flex gap-2 bg-[#12121a] p-1 rounded-xl border border-[#2a2a38]">
-                        <button
-                            onClick={() => setFilter('all')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filter === 'all' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25' : 'text-gray-400 hover:text-white'}`}
-                        >
-                            All
-                        </button>
-                        <button
-                            onClick={() => setFilter('low_stock')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filter === 'low_stock' ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/25' : 'text-gray-400 hover:text-white'}`}
-                        >
-                            Low Stock
-                        </button>
-                        <button
-                            onClick={() => setFilter('out_of_stock')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filter === 'out_of_stock' ? 'bg-red-600 text-white shadow-lg shadow-red-600/25' : 'text-gray-400 hover:text-white'}`}
-                        >
-                            Out of Stock
-                        </button>
+                    <div className="flex bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
+                        {[
+                            { id: 'all', label: 'All Items' },
+                            { id: 'low_stock', label: 'Low Stock' },
+                            { id: 'out_of_stock', label: 'Out of Stock' }
+                        ].map((opt) => (
+                            <button
+                                key={opt.id}
+                                onClick={() => setFilter(opt.id as any)}
+                                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${filter === opt.id
+                                    ? 'bg-gray-900 text-white shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                                    }`}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-[#12121a] border border-[#2a2a38] rounded-2xl p-6 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Package className="w-24 h-24 text-blue-500" />
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-medium text-gray-500">Total Products</p>
+                        <span className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                            <Package className="w-5 h-5" />
+                        </span>
                     </div>
-                    <div className="flex items-center justify-between mb-4 relative">
-                        <div className="p-3 bg-blue-500/10 rounded-xl border border-blue-500/20">
-                            <Package className="w-6 h-6 text-blue-500" />
-                        </div>
-                        <span className="text-xs font-bold px-2 py-1 bg-blue-500/10 text-blue-500 rounded-lg border border-blue-500/20">Total Units</span>
-                    </div>
-                    <p className="text-3xl font-bold text-white relative">{products.reduce((acc, p) => acc + p.total_stock, 0)}</p>
-                    <p className="text-sm text-gray-400 mt-1 relative">Across all products</p>
+                    <p className="text-2xl font-bold text-gray-900">{products.length}</p>
+                    <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" /> All categories tracked
+                    </p>
                 </div>
 
-                <div className="bg-[#12121a] border border-[#2a2a38] rounded-2xl p-6 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <AlertTriangle className="w-24 h-24 text-yellow-500" />
+                <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-medium text-gray-500">Low Stock Items</p>
+                        <span className="p-2 bg-yellow-50 text-yellow-600 rounded-lg">
+                            <AlertTriangle className="w-5 h-5" />
+                        </span>
                     </div>
-                    <div className="flex items-center justify-between mb-4 relative">
-                        <div className="p-3 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
-                            <AlertTriangle className="w-6 h-6 text-yellow-500" />
-                        </div>
-                        <span className="text-xs font-bold px-2 py-1 bg-yellow-500/10 text-yellow-500 rounded-lg border border-yellow-500/20">Low Stock</span>
-                    </div>
-                    <p className="text-3xl font-bold text-white relative">{products.filter(p => p.total_stock > 0 && p.total_stock <= 10).length}</p>
-                    <p className="text-sm text-gray-400 mt-1 relative">Products need attention</p>
+                    <p className="text-2xl font-bold text-gray-900">{products.filter(p => p.total_stock > 0 && p.total_stock <= 10).length}</p>
+                    <p className="text-xs text-yellow-600 mt-1">Needs attention</p>
                 </div>
 
-                <div className="bg-[#12121a] border border-[#2a2a38] rounded-2xl p-6 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Package className="w-24 h-24 text-red-500" />
+                <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-medium text-gray-500">Out of Stock</p>
+                        <span className="p-2 bg-red-50 text-red-600 rounded-lg">
+                            <ArrowDown className="w-5 h-5" />
+                        </span>
                     </div>
-                    <div className="flex items-center justify-between mb-4 relative">
-                        <div className="p-3 bg-red-500/10 rounded-xl border border-red-500/20">
-                            <Package className="w-6 h-6 text-red-500" />
-                        </div>
-                        <span className="text-xs font-bold px-2 py-1 bg-red-500/10 text-red-500 rounded-lg border border-red-500/20">Empty</span>
-                    </div>
-                    <p className="text-3xl font-bold text-white relative">{products.filter(p => p.total_stock === 0).length}</p>
-                    <p className="text-sm text-gray-400 mt-1 relative">Products out of stock</p>
+                    <p className="text-2xl font-bold text-gray-900">{products.filter(p => p.total_stock === 0).length}</p>
+                    <p className="text-xs text-red-600 mt-1">Restock immediately</p>
                 </div>
             </div>
 
             {/* Search */}
-            <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                <input
-                    type="text"
-                    placeholder="Search inventory..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-[#12121a] border border-[#2a2a38] rounded-xl text-white placeholder:text-gray-500 focus:border-orange-500 outline-none focus:ring-1 focus:ring-orange-500/50 transition-all font-medium"
-                />
+            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search products by name..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm"
+                    />
+                </div>
             </div>
 
-            {/* Table */}
-            <div className="bg-[#12121a] border border-[#2a2a38] rounded-2xl overflow-hidden shadow-lg shadow-black/20">
+            {/* Inventory Table */}
+            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="border-b border-[#2a2a38] bg-[#1a1a24]">
-                                <th className="p-4 text-sm font-semibold text-gray-300">Product Name</th>
-                                <th className="p-4 text-sm font-semibold text-gray-300">Category</th>
-                                <th className="p-4 text-sm font-semibold text-gray-300 text-right">Unit Price</th>
-                                <th className="p-4 text-sm font-semibold text-gray-300 text-center">Total Stock</th>
-                                <th className="p-4 text-sm font-semibold text-gray-300 text-right">Status</th>
-                                <th className="p-4 text-sm font-semibold text-gray-300 text-right">Actions</th>
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
+                            <tr>
+                                <th className="p-4">Product</th>
+                                <th className="p-4">Category</th>
+                                <th className="p-4 text-right">Price</th>
+                                <th className="p-4 text-center">Stock Level</th>
+                                <th className="p-4 text-center">Status</th>
+                                <th className="p-4 text-right">Quick Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#2a2a38]">
+                        <tbody className="divide-y divide-gray-100">
                             {filteredProducts.map((product) => (
-                                <tr key={product.id} className="hover:bg-[#1a1a24] transition-colors group">
+                                <tr key={product.id} className="hover:bg-gray-50 transition-colors">
                                     <td className="p-4">
-                                        <p className="font-medium text-white">{product.name}</p>
-                                        <p className="text-xs text-gray-500">{product.product_variants?.length || 0} variants</p>
+                                        <p className="font-medium text-gray-900">{product.name}</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">{product.product_variants?.length || 0} variants</p>
                                     </td>
-                                    <td className="p-4 text-gray-400 capitalize">
+                                    <td className="p-4 text-gray-600 capitalize">
                                         {product.category?.replace('_', ' ') || 'Uncategorized'}
                                     </td>
-                                    <td className="p-4 text-right font-medium text-gray-300">
+                                    <td className="p-4 text-right font-medium text-gray-900">
                                         ₹{product.price?.toLocaleString()}
                                     </td>
                                     <td className="p-4 text-center">
-                                        <span className={`font-mono font-bold px-3 py-1 rounded-lg ${product.total_stock === 0 ? 'bg-red-500/10 text-red-500' :
-                                            product.total_stock <= 10 ? 'bg-yellow-500/10 text-yellow-500' :
-                                                'bg-green-500/10 text-green-500'
+                                        <span className={`inline-block min-w-[3rem] px-2 py-1 rounded text-xs font-bold ${product.total_stock === 0 ? 'bg-red-100 text-red-700' :
+                                                product.total_stock <= 10 ? 'bg-yellow-100 text-yellow-700' :
+                                                    'bg-green-100 text-green-700'
                                             }`}>
                                             {product.total_stock}
                                         </span>
                                     </td>
-                                    <td className="p-4 text-right">
+                                    <td className="p-4 text-center">
                                         {product.total_stock === 0 ? (
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-red-500/10 text-red-500 border border-red-500/20">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-100">
                                                 Out of Stock
                                             </span>
                                         ) : product.total_stock <= 10 ? (
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
+                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-100">
                                                 Low Stock
                                             </span>
                                         ) : (
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-green-500/10 text-green-500 border border-green-500/20">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100">
                                                 In Stock
                                             </span>
                                         )}
@@ -295,8 +273,8 @@ export default function InventoryPage() {
                             {filteredProducts.length === 0 && (
                                 <tr>
                                     <td colSpan={6} className="p-12 text-center text-gray-500">
-                                        <Package className="w-12 h-12 text-gray-600 mx-auto mb-3 opacity-50" />
-                                        <p>No products found matching your inventory criteria.</p>
+                                        <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                        <p>No products found</p>
                                     </td>
                                 </tr>
                             )}

@@ -109,13 +109,13 @@ export default function SearchSuggestions({ query, onClose }: SearchSuggestionsP
                         onClick={onClose}
                         className="block p-3 text-center text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
                     >
-                        View all results for "{query}"
+                        View all results for &quot;{query}&quot;
                     </Link>
                 </div>
             ) : (
                 <div className="p-8 text-center text-gray-500 dark:text-gray-400">
                     <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No products found for "{query}"</p>
+                    <p className="text-sm">No products found for &quot;{query}&quot;</p>
                 </div>
             )}
         </div>
