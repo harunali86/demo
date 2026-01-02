@@ -41,6 +41,33 @@ async function verifyQueries() {
         }
     }
 
+    console.log('\n2.5 Verifying Profiles Table...');
+    const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .limit(1);
+
+    if (profilesError) {
+        console.error('FAIL: Profiles fetch failed:', profilesError.message);
+    } else {
+        console.log(`SUCCESS: Profiles table accessible. Found ${profiles.length} profiles.`);
+    }
+
+    console.log('\n3. Verifying Orders Table...');
+    const { data: orders, error: ordersError } = await supabase
+        .from('orders')
+        .select('*')
+        .limit(1);
+
+    if (ordersError) {
+        console.error('FAIL: Orders fetch failed:', ordersError.message);
+        if (ordersError.message.includes('schema cache')) {
+            console.error('CRITICAL: Table "orders" might differ from schema cache or missing.');
+        }
+    } else {
+        console.log(`SUCCESS: Orders table accessible. Found ${orders.length} orders.`);
+    }
+
     console.log('\n-------------------------------');
 }
 
