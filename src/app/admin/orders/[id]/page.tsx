@@ -155,8 +155,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                     .in('product_id', productIds);
 
                 itemsWithProducts = itemsWithProducts.map((item: any) => {
-                    const product = productsData?.find((p: any) => p.id === item.product_id);
-                    const image = imagesData?.find((img: any) => img.product_id === item.product_id);
+                    const product = (productsData as any[])?.find((p: any) => p.id === item.product_id);
+                    const image = (imagesData as any[])?.find((img: any) => img.product_id === item.product_id);
                     return {
                         ...item,
                         product: {
