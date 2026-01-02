@@ -55,7 +55,8 @@ export default function ProductsPage() {
             // We use a try-catch for images specifically so product loading doesn't fail if images fail
             let imagesData: any[] = [];
             try {
-                const productIds = productsData.map(p => p.id);
+                // @ts-ignore
+                const productIds = (productsData as any[]).map(p => p.id);
                 if (productIds.length > 0) {
                     const { data, error } = await supabase
                         .from('product_images')
