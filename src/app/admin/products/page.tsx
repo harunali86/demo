@@ -38,13 +38,48 @@ export default function ProductsPage() {
 
     const fetchProducts = async () => {
         try {
-            const { data, error } = await supabase
+            // 1. Fetch Products
+            const { data: productsData, error: productsError } = await supabase
                 .from('products')
-                .select('*, images:product_images(url)')
+                .select('*')
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
-            setProducts(data || []);
+            if (productsError) throw productsError;
+
+            if (!productsData || productsData.length === 0) {
+                setProducts([]);
+                return;
+            }
+
+            // 2. Fetch Images for these products
+            // We use a try-catch for images specifically so product loading doesn't fail if images fail
+            let imagesData: any[] = [];
+            try {
+                const productIds = productsData.map(p => p.id);
+                if (productIds.length > 0) {
+                    const { data, error } = await supabase
+                        .from('product_images')
+                        .select('product_id, url')
+                        .in('product_id', productIds);
+
+                    if (error) throw error;
+                    imagesData = data || [];
+                }
+            } catch (imageError) {
+                console.warn('Error fetching product images:', imageError);
+                // Continue without images
+            }
+
+            // 3. Merge Data
+            const productsWithImages = productsData.map(product => {
+                const productImages = imagesData.filter(img => img.product_id === product.id);
+                return {
+                    ...product,
+                    images: productImages
+                };
+            });
+
+            setProducts(productsWithImages);
         } catch (error) {
             console.error('Error fetching products:', error);
             // toast.error('Failed to load products');
@@ -154,7 +189,7 @@ export default function ProductsPage() {
                 </div>
                 <Link
                     href="/admin/products/new"
-                    className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition shadow-lg shadow-orange-500/25"
+                    className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition shadow-lg shadow-orange-600/25"
                 >
                     <Plus className="w-5 h-5" />
                     Add Product
@@ -169,7 +204,7 @@ export default function ProductsPage() {
                     <p className="text-gray-400 mb-6">Start adding products to your store</p>
                     <Link
                         href="/admin/products/new"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition shadow-lg shadow-orange-600/20"
                     >
                         <Plus className="w-5 h-5" />
                         Add Your First Product

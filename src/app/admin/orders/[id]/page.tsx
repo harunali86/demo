@@ -115,70 +115,129 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
     const fetchOrder = async () => {
         try {
-            const { data: rawData, error } = await supabase
+            // 1. Fetch Basic Order Info
+            // We avoid deep joins here to prevent RLS/Relation failures
+            const { data: orderData, error: orderError } = await supabase
                 .from('orders')
-                .select(`
-                    *,
-                    items:order_items (
-                        *,
-                        product:products (name, images)
-                    ),
-                    customer:profiles (first_name, last_name, email, phone),
-                    timeline:order_tracking (*)
-                `)
+                .select('*')
                 .eq('id', id)
                 .single();
 
-            if (error) throw error;
+            if (orderError) throw orderError;
+            if (!orderData) throw new Error('Order not found');
 
-            if (rawData) {
-                // Cast to Extended type to handle joins properly
-                const data = rawData as unknown as OrderWithDetails;
+            // 2. Fetch Order Items
+            const { data: itemsData, error: itemsError } = await supabase
+                .from('order_items')
+                .select('*')
+                .eq('order_id', id);
 
-                // Transform database data to Order type
-                const transformedOrder: Order = {
-                    id: data.id,
-                    order_number: data.order_number || `HS-${data.id.slice(-4)}`,
-                    status: data.status,
-                    total: data.total,
-                    subtotal: data.subtotal,
-                    shipping: data.shipping,
-                    tax: data.tax,
-                    discount: data.discount || 0,
-                    payment_method: data.payment_provider || 'Unknown',
-                    payment_status: data.payment_status,
-                    created_at: data.created_at,
-                    updated_at: data.updated_at,
-                    customer: {
-                        name: data.customer ? `${data.customer.first_name} ${data.customer.last_name}` : 'Unknown Customer',
-                        email: data.customer?.email || 'N/A',
-                        phone: data.customer?.phone || 'N/A'
-                    },
-                    shipping_address: {
-                        name: (data.shipping_address as any)?.name || '',
-                        address: (data.shipping_address as any)?.address_line1 || '',
-                        city: (data.shipping_address as any)?.city || '',
-                        state: (data.shipping_address as any)?.state || '',
-                        pincode: (data.shipping_address as any)?.postal_code || '',
-                        phone: (data.shipping_address as any)?.phone || ''
-                    },
-                    items: data.items.map((item) => ({
-                        id: item.id,
-                        product_name: item.product?.name || 'Unknown Product',
-                        product_image: item.product?.images?.[0] || 'https://via.placeholder.com/200',
-                        quantity: item.quantity,
-                        price: item.unit_price
-                    })),
-                    notes: data.notes ? (data.notes as string).split('\n') : [],
-                    timeline: data.timeline.map((t) => ({
-                        status: t.status,
-                        date: t.created_at,
-                        note: t.message || undefined
-                    })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                };
+            if (itemsError) console.error('Error fetching items:', itemsError);
 
-                setOrder(transformedOrder);
+            // 3. Fetch Product Details for Items (to get names/images)
+            let itemsWithProducts = itemsData || [];
+            if (itemsWithProducts.length > 0) {
+                const productIds = itemsWithProducts.map((i: any) => i.product_id);
+                const { data: productsData } = await supabase
+                    .from('products')
+                    .select('id, name, images:product_images(url)')
+                    // Note: We keep a small join here (product->images) as it's standard, 
+                    // but if this fails we can fallback. 
+                    // For safety in this "fix mode", let's use a simpler fetch if possible, 
+                    // but 'images:product_images(url)' is what we replaced in products page.
+                    // Let's stick to simple select and manual merge for MAXIMUM SAFETY.
+                    .select('id, name')
+                    .in('id', productIds);
+
+                const { data: imagesData } = await supabase
+                    .from('product_images')
+                    .select('product_id, url')
+                    .in('product_id', productIds);
+
+                itemsWithProducts = itemsWithProducts.map((item: any) => {
+                    const product = productsData?.find((p: any) => p.id === item.product_id);
+                    const image = imagesData?.find((img: any) => img.product_id === item.product_id);
+                    return {
+                        ...item,
+                        product: {
+                            name: product?.name || 'Unknown Product',
+                            images: image ? [{ url: image.url }] : []
+                        }
+                    };
+                });
             }
+
+            // 4. Fetch Customer Profile
+            let customerData = null;
+            if (orderData.user_id) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('first_name, last_name, email, phone')
+                    .eq('id', orderData.user_id)
+                    .single();
+                customerData = profile;
+            }
+
+            // 5. Fetch Tracking
+            const { data: trackingData } = await supabase
+                .from('order_tracking')
+                .select('*')
+                .eq('order_id', id);
+
+            // Construct Final Object
+            const fullOrder = {
+                ...orderData,
+                items: itemsWithProducts,
+                customer: customerData,
+                timeline: trackingData || []
+            };
+
+            // Transform to UI Model
+            // @ts-ignore
+            const data = fullOrder as OrderWithDetails;
+
+            const transformedOrder: Order = {
+                id: data.id,
+                order_number: data.order_number || `HS-${data.id.slice(-4)}`,
+                status: data.status,
+                total: data.total,
+                subtotal: data.subtotal,
+                shipping: data.shipping,
+                tax: data.tax,
+                discount: data.discount || 0,
+                payment_method: data.payment_provider || 'Unknown',
+                payment_status: data.payment_status,
+                created_at: data.created_at,
+                updated_at: data.updated_at,
+                customer: {
+                    name: data.customer ? `${data.customer.first_name} ${data.customer.last_name}` : 'Unknown Customer',
+                    email: data.customer?.email || 'N/A',
+                    phone: data.customer?.phone || 'N/A'
+                },
+                shipping_address: {
+                    name: (data.shipping_address as any)?.name || '',
+                    address: (data.shipping_address as any)?.address_line1 || '',
+                    city: (data.shipping_address as any)?.city || '',
+                    state: (data.shipping_address as any)?.state || '',
+                    pincode: (data.shipping_address as any)?.postal_code || '',
+                    phone: (data.shipping_address as any)?.phone || ''
+                },
+                items: data.items.map((item) => ({
+                    id: item.id,
+                    product_name: item.product?.name || 'Unknown Product',
+                    product_image: item.product?.images?.[0] || 'https://via.placeholder.com/200',
+                    quantity: item.quantity,
+                    price: item.unit_price
+                })),
+                notes: data.notes ? (data.notes as string).split('\n') : [],
+                timeline: data.timeline.map((t) => ({
+                    status: t.status,
+                    date: t.created_at,
+                    note: t.message || undefined
+                })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            };
+
+            setOrder(transformedOrder);
         } catch (error) {
             console.error('Error fetching order:', error);
             // Fallback to mock data for demo only if completely failed, or just show error
