@@ -44,15 +44,40 @@ export default function CouponsPage() {
                 .select('*')
                 .order('created_at', { ascending: false });
 
-            // If table doesn't exist yet, we might get an error.
             if (error) {
-                console.warn('Error fetching coupons (table might not exist yet):', error);
-                setCoupons([]); // Fail gracefully
+                // Fallback to local mock data if table is missing
+                console.warn('Coupons table missing, using mock data:', error);
+                setCoupons([
+                    {
+                        id: '1',
+                        code: 'DEMO2025',
+                        discount_type: 'percentage',
+                        discount_value: 20,
+                        min_purchase_amount: 1000,
+                        expires_at: new Date(Date.now() + 86400000 * 30).toISOString(),
+                        usage_limit: 100,
+                        usage_count: 5,
+                        is_active: true
+                    },
+                    {
+                        id: '2',
+                        code: 'WELCOME500',
+                        discount_type: 'fixed',
+                        discount_value: 500,
+                        min_purchase_amount: 2500,
+                        expires_at: new Date(Date.now() + 86400000 * 7).toISOString(),
+                        usage_limit: 1000,
+                        usage_count: 42,
+                        is_active: true
+                    }
+                ]);
             } else {
                 setCoupons(data || []);
             }
         } catch (error) {
-            console.error('Error fetching coupons:', error);
+            console.warn('Error fetching coupons:', error);
+            // Ensure it doesn't crash UI
+            setCoupons([]);
         } finally {
             setLoading(false);
         }
@@ -154,8 +179,8 @@ export default function CouponsPage() {
                                     <Tag className="w-6 h-6 text-purple-500" />
                                 </div>
                                 <div className={`px-3 py-1 rounded-full text-xs font-bold border ${coupon.is_active
-                                        ? 'bg-green-500/10 text-green-500 border-green-500/20'
-                                        : 'bg-gray-800 text-gray-400 border-gray-700'
+                                    ? 'bg-green-500/10 text-green-500 border-green-500/20'
+                                    : 'bg-gray-800 text-gray-400 border-gray-700'
                                     }`}>
                                     {coupon.is_active ? 'ACTIVE' : 'INACTIVE'}
                                 </div>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, X, Navigation, Search, Loader2, CheckCircle, MapPinned, Home, Building } from 'lucide-react';
 import { useLocationStore, Address } from '@/store/location';
+import { toast } from 'sonner';
 
 // Popular cities for quick selection
 const POPULAR_CITIES = [
@@ -135,33 +136,52 @@ export default function LocationModal() {
                         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
                         { headers: { 'Accept-Language': 'en' } }
                     );
+
+                    if (!response.ok) throw new Error('Address lookup failed');
+
                     const data = await response.json();
 
-                    const road = data.address.road || data.address.street || '';
-                    const suburb = data.address.suburb || data.address.neighbourhood || '';
-                    const city = data.address.city || data.address.town || data.address.village || '';
-                    const pincode = data.address.postcode || '';
+                    if (!data.address) throw new Error('No address found');
+
+                    const address = data.address;
+                    const road = address.road || address.street || address.path || address.lane || '';
+                    const area = address.suburb || address.neighbourhood || address.residential || address.commercial || address.industrial || address.hamlet || road;
+                    const city = address.city || address.town || address.village || address.municipality || address.city_district || address.county || address.state_district || '';
+                    const pincode = address.postcode || '';
 
                     setAddressForm(prev => ({
                         ...prev,
                         road: road,
-                        area: suburb || road,
+                        area: area,
                         city: city,
                         pincode: pincode,
                     }));
 
+                    toast.success('Location detected successfully!', {
+                        description: `${area}, ${city}`,
+                        icon: <CheckCircle className="w-5 h-5 text-green-500" />,
+                    });
+
                     setActiveTab('address'); // Switch to address tab to complete
                     setDetecting(false);
                 } catch (error) {
-                    setErrorMsg('Failed to detect. Enter address manually.');
+                    console.error('GPS Processing Error:', error);
+                    toast.error('Could not fetch address details', { description: 'Please enter manually' });
+                    setErrorMsg('Failed to fetch address details. Please enter manually.');
                     setDetecting(false);
                 }
             },
-            () => {
-                setErrorMsg('Location access denied. Enter address manually.');
+            (err) => {
+                console.warn('Geolocation Error:', err);
+                let msg = 'Location access denied.';
+                if (err.code === 2) msg = 'Location unavailable / GPS disabled.';
+                if (err.code === 3) msg = 'Location request timed out.';
+
+                toast.error(msg, { description: 'Please enter address manually' });
+                setErrorMsg(msg + ' Enter address manually.');
                 setDetecting(false);
             },
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
         );
     };
 
@@ -243,6 +263,15 @@ export default function LocationModal() {
 
                             {/* Address Form */}
                             <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-sm font-medium text-white">Complete Address Details</h3>
+                                    {accuracy && (
+                                        <span className="text-[10px] bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full border border-green-500/20 flex items-center gap-1">
+                                            <Navigation className="w-3 h-3" />
+                                            GPS Detected
+                                        </span>
+                                    )}
+                                </div>
                                 {/* Search Area */}
                                 <div className="relative">
                                     <label className="block text-xs font-medium text-gray-400 mb-1">Search Area/Locality</label>
@@ -283,8 +312,8 @@ export default function LocationModal() {
                                                 key={city.name}
                                                 onClick={() => setAddressForm(prev => ({ ...prev, city: city.name, pincode: city.pincode }))}
                                                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${addressForm.city === city.name
-                                                        ? 'bg-primary text-white'
-                                                        : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                                                    ? 'bg-primary text-white'
+                                                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
                                                     }`}
                                             >
                                                 {city.name}

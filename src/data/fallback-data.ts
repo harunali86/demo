@@ -92,3 +92,47 @@ export const mockCustomers = [
         total_spent: 8500
     }
 ];
+
+export const mockCategories = [
+    {
+        id: "cat_1",
+        name: "Premium Tech",
+        slug: "premium_tech",
+        description: "High-end electronics and gadgets for the modern lifestyle.",
+        image_url: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2070&auto=format&fit=crop",
+        product_count: 12,
+        is_active: true,
+        created_at: new Date().toISOString()
+    },
+    {
+        id: "cat_2",
+        name: "Audio",
+        slug: "audio",
+        description: "Immersive sound experiences with top-tier headphones and speakers.",
+        image_url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=2070&auto=format&fit=crop",
+        product_count: 8,
+        is_active: true,
+        created_at: new Date().toISOString()
+    },
+    {
+        id: "cat_3",
+        name: "Fashion",
+        slug: "fashion",
+        description: "Trendy apparel and accessories for men and women.",
+        image_url: "https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2071&auto=format&fit=crop",
+        product_count: 24,
+        is_active: true,
+        created_at: new Date().toISOString()
+    },
+    {
+        id: "cat_4",
+        name: "Gaming",
+        slug: "gaming",
+        description: "Consoles, accessories, and games for the ultimate setup.",
+        image_url: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?q=80&w=2070&auto=format&fit=crop",
+        product_count: 15,
+        is_active: true,
+        created_at: new Date().toISOString()
+    }
+];
+

@@ -2,10 +2,46 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingCart, Search, Menu, User, Heart, X, ChevronDown } from 'lucide-react';
+import { ShoppingCart, Search, Menu, User, Heart, X, MapPin } from 'lucide-react';
 import { useCartStore } from '@/store/cart';
 import { useWishlistStore } from '@/store/wishlist';
 import { useAuthStore } from '@/store/auth';
+import { useLocationStore } from '@/store/location';
+
+const LocationDisplay = () => {
+    const { location, fullAddress, setModalOpen } = useLocationStore();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) return (
+        <div className="flex flex-col min-w-[100px] animate-pulse">
+            <div className="h-3 w-12 bg-white/10 rounded mb-1"></div>
+            <div className="h-4 w-20 bg-white/10 rounded"></div>
+        </div>
+    );
+
+    const displayText = fullAddress?.city
+        ? `${fullAddress.city} ${fullAddress.pincode}`
+        : location !== 'Select Location' ? location : 'Select Location';
+
+    return (
+        <button
+            onClick={() => setModalOpen(true)}
+            className="flex items-center gap-2 hover:bg-[#1a1a24] p-2 rounded-xl transition-colors text-left group"
+        >
+            <MapPin className="w-5 h-5 text-orange-500 group-hover:scale-110 transition-transform" />
+            <div className="leading-tight">
+                <p className="text-[10px] text-[#a0a0b0] font-medium">Deliver to</p>
+                <p className="text-sm font-bold text-[#f0f0f5] line-clamp-1 max-w-[140px]">
+                    {displayText}
+                </p>
+            </div>
+        </button>
+    );
+};
 
 export default function Navbar() {
     const items = useCartStore((state) => state.items);
@@ -42,6 +78,11 @@ export default function Navbar() {
                                 <span className="text-orange-400 font-bold">Store</span>
                             </div>
                         </Link>
+
+                        {/* Location / Deliver To */}
+                        <div className="hidden md:block">
+                            <LocationDisplay />
+                        </div>
 
                         <form onSubmit={handleSearch} className="flex-1 max-w-xl">
                             <div className="relative">

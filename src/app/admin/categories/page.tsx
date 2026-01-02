@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Save, X, FolderTree } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { mockCategories } from '@/data/fallback-data';
+import { toast } from 'sonner';
 
 interface Category {
     id: string;
@@ -44,8 +46,11 @@ export default function CategoriesPage() {
             if (error) throw error;
             setCategories(data || []);
         } catch (error) {
-            console.error('Error fetching categories:', error);
-            setCategories([]);
+            console.warn('Suppressing error fetching categories (Demo Mode):', error);
+            // Fallback to mock data
+            // @ts-ignore
+            setCategories(mockCategories);
+            toast('Demo Mode: Using sample categories', { icon: '⚠️' });
         } finally {
             setLoading(false);
         }
