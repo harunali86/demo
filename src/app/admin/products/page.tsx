@@ -73,7 +73,8 @@ export default function ProductsPage() {
 
             // 3. Merge Data
             const productsWithImages = productsData.map(product => {
-                const productImages = imagesData.filter(img => img.product_id === product.id);
+                // @ts-ignore
+                const productImages = (imagesData as any[]).filter(img => img.product_id === product.id);
                 return {
                     ...product,
                     images: productImages

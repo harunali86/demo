@@ -34,11 +34,16 @@ export default function CustomersPage() {
                 .select('*')
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase error fetching profiles:', error.message);
+                throw error;
+            }
 
             if (profiles && profiles.length > 0) {
                 // Get orders for each customer
-                const { data: orders } = await supabase.from('orders').select('*');
+                const { data: orders, error: ordersError } = await supabase.from('orders').select('*');
+
+                if (ordersError) console.warn('Error fetching orders for stats:', ordersError.message);
 
                 const customersWithStats: Customer[] = profiles.map((p: any) => {
                     const customerOrders = orders?.filter((o: any) => o.user_id === p.id) || [];

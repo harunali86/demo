@@ -40,11 +40,18 @@ export default function OrdersPage() {
                 .select('*')
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase error fetching orders:', error.message, error.details);
+                throw error;
+            }
+
             setOrders(data || []);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error fetching orders:', error);
-            // Don't show error toast on initial load if just empty
+            // Only capture the error if it's not just an empty list scenario
+            if (error.code !== 'PGRST116') { // PGRST116 is 'JSON object requested, multiple (or no) results returned' which usually implies no data
+                // toast.error('Failed to load orders'); // Suppress for now to avoid annoyance
+            }
             setOrders([]);
         } finally {
             setLoading(false);
