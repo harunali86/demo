@@ -135,7 +135,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             if (itemsError) console.error('Error fetching items:', itemsError);
 
             // 3. Fetch Product Details for Items (to get names/images)
-            let itemsWithProducts = itemsData || [];
+            let itemsWithProducts: any[] = itemsData || [];
             if (itemsWithProducts.length > 0) {
                 const productIds = itemsWithProducts.map((i: any) => i.product_id);
                 const { data: productsData } = await supabase
